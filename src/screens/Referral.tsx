@@ -5,24 +5,31 @@ import { CoinIcon } from '../components/CoinIcon';
 import { Users, Copy, Share2, TrendingUp, DollarSign, Clock, CheckCircle2, ShieldCheck, Mail, Info } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-const stats = [
-  { label: 'Invited Users', value: '42', icon: Users, color: 'bg-blue-500' },
-  { label: 'Active Today', value: '18', icon: TrendingUp, color: 'bg-green-500' },
-  { label: 'Total Commission', value: '2,450', icon: DollarSign, color: 'bg-orange-500' },
-  { label: 'Withdrawable', value: '580', icon: CheckCircle2, color: 'bg-purple-500' },
-];
-
-const referrals = [
-  { name: 'Alex Johnson', email: 'alex.j@gmail.com', date: '2024-05-01', earnings: 12000, commission: 1200, status: 'Active' },
-  { name: 'Sarah Miller', email: 's.miller@outlook.com', date: '2024-05-02', earnings: 8500, commission: 850, status: 'Active' },
-  { name: 'Mike Ross', email: 'mike.ross@gmail.com', date: '2024-04-28', earnings: 4000, commission: 400, status: 'Inactive' },
-];
+import { apiService } from '../services/api';
 
 export const Referral = () => {
-  const { refreshUser } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [copied, setCopied] = React.useState(false);
   const [referralInput, setReferralInput] = React.useState('');
-  const referralCode = "NEXVY999X";
+  const [referralStats, setReferralStats] = React.useState({
+    invitedCount: 0,
+    activeToday: 0,
+    totalCommission: 0,
+    withdrawable: 0
+  });
+  const [referralsList, setReferralsList] = React.useState<any[]>([]);
+
+  const referralCode = user?.referralCode || "NEXVY-OFFLINE";
+
+  React.useEffect(() => {
+    const fetchData = async () => {
+      const stats = await apiService.getReferralStats();
+      const list = await apiService.getReferralList();
+      setReferralStats(stats);
+      setReferralsList(list);
+    };
+    fetchData();
+  }, []);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(referralCode);
@@ -33,16 +40,8 @@ export const Referral = () => {
   const handleClaimReferral = async () => {
     if (!referralInput) return;
     try {
-      const res = await fetch('/api/user/referral', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({ code: referralInput }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      const data = await apiService.claimReferral(referralInput);
+      if (data.error) throw new Error(data.error);
       alert(`Referral claimed! Reward: ${data.reward} coins`);
       await refreshUser();
       setReferralInput('');
@@ -50,6 +49,13 @@ export const Referral = () => {
       alert(err.message);
     }
   };
+
+  const stats = [
+    { label: 'Invited Users', value: referralStats.invitedCount.toString(), icon: Users, color: 'bg-blue-500' },
+    { label: 'Active Today', value: referralStats.activeToday.toString(), icon: TrendingUp, color: 'bg-green-500' },
+    { label: 'Total Commission', value: referralStats.totalCommission.toLocaleString(), icon: DollarSign, color: 'bg-orange-500' },
+    { label: 'Withdrawable', value: referralStats.withdrawable.toLocaleString(), icon: CheckCircle2, color: 'bg-purple-500' },
+  ];
 
   return (
     <motion.div
@@ -141,7 +147,7 @@ export const Referral = () => {
          </div>
          
          <div className="flex flex-col gap-3">
-            {referrals.map((user, i) => (
+            {referralsList.map((user, i) => (
                 <div key={i} className="gaming-card bg-blue-800/20 border-white/10 group hover:bg-blue-700/30 transition-all p-4">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">

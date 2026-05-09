@@ -169,7 +169,7 @@ export const UserManagement: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-slate-400 text-xs">
-                    {user.createdAt ? new Date(user.createdAt?.seconds * 1000).toLocaleDateString() : 'N/A'}
+                    {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">

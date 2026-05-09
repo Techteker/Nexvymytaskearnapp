@@ -218,7 +218,7 @@ export const Dashboard: React.FC = () => {
                   </td>
                   <td className="px-8 py-5 text-slate-400 text-sm">{log.details}</td>
                   <td className="px-8 py-5 text-slate-500 text-xs text-right italic">
-                     {log.timestamp?.toDate().toLocaleTimeString()}
+                     {log.timestamp ? new Date(log.timestamp).toLocaleTimeString() : 'Recently'}
                   </td>
                 </tr>
               ))}

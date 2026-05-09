@@ -6,46 +6,51 @@ import { CoinIcon } from '../components/CoinIcon';
 import { Timer, CheckCircle2, XCircle, ChevronRight, Trophy } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
-const sampleQuizData = {
-  1: {
-    title: 'General Knowledge',
-    questions: [
-      {
-        id: 1,
-        question: 'Which planet is known as the Red Planet?',
-        options: ['Venus', 'Mars', 'Jupiter', 'Saturn'],
-        correct: 1
-      },
-      {
-        id: 2,
-        question: 'What is the capital of France?',
-        options: ['London', 'Berlin', 'Paris', 'Madrid'],
-        correct: 2
-      },
-      {
-        id: 3,
-        question: 'Which is the largest ocean on Earth?',
-        options: ['Atlantic', 'Indian', 'Pacific', 'Arctic'],
-        correct: 2
-      }
-    ]
-  }
-};
+import { apiService } from '../services/api';
+import { aiService, QuizQuestion } from '../services/aiService';
 
 export const QuizGame = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   
+  const [questions, setQuestions] = React.useState<QuizQuestion[]>([]);
+  const [loading, setLoading] = React.useState(true);
   const [currentQuestion, setCurrentQuestion] = React.useState(0);
   const [selectedOption, setSelectedOption] = React.useState<number | null>(null);
   const [score, setScore] = React.useState(0);
   const [showResult, setShowResult] = React.useState(false);
   const [isAnswering, setIsAnswering] = React.useState(false);
 
-  // Use sample data or fallback
-  const quiz = sampleQuizData[id as unknown as keyof typeof sampleQuizData] || sampleQuizData[1];
-  const totalQuestions = quiz.questions.length;
-  const question = quiz.questions[currentQuestion];
+  React.useEffect(() => {
+    const loadQuiz = async () => {
+      setLoading(true);
+      try {
+        const generated = await aiService.generateQuiz(id || 'General Knowledge');
+        setQuestions(generated);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadQuiz();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+        <div className="w-16 h-16 border-4 border-gaming-accent border-t-transparent rounded-full animate-spin" />
+        <p className="text-white/60 font-black uppercase tracking-widest animate-pulse">AI is generating your quiz...</p>
+      </div>
+    );
+  }
+
+  if (questions.length === 0) {
+    return <div className="text-center p-10 text-white">Failed to load quiz. Please try again.</div>;
+  }
+
+  const totalQuestions = questions.length;
+  const question = questions[currentQuestion];
 
   const handleOptionSelect = (index: number) => {
     if (isAnswering) return;

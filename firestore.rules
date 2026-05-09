@@ -2,133 +2,100 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // 0. Default Deny
+    // 0. Global Safety Net
     match /{document=**} {
       allow read, write: if false;
     }
 
-    // --- Global Helpers ---
+    // --- Helpers ---
     function isSignedIn() {
       return request.auth != null;
     }
-    
     function isEmailVerified() {
-      return isSignedIn() && request.auth.token.email_verified == true;
+      return request.auth.token.email_verified == true;
     }
-
-    function isAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
-    }
-
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    function incoming() {
-      return request.resource.data;
-    }
-
     function existing() {
       return resource.data;
     }
-
+    function incoming() {
+      return request.resource.data;
+    }
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
     function isValidId(id) {
-       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
-    // --- Entity Validations ---
-    function isValidUser(data) {
-      return data.keys().hasAll(['email', 'username', 'coins', 'level']) &&
-             data.email is string && data.email.size() <= 256 &&
-             data.username is string && data.username.size() <= 100 &&
-             data.coins is number && data.level is number;
-    }
-
-    function isValidTask(data) {
-      return data.keys().hasAll(['title', 'category', 'rewardCoins']) &&
-             data.title is string && data.title.size() <= 200 &&
-             data.rewardCoins is number && data.rewardCoins >= 0;
-    }
-
-    function isValidSubmission(data) {
-      return data.keys().hasAll(['userId', 'taskId', 'status']) &&
-             data.userId == request.auth.uid &&
-             data.status == 'pending';
-    }
-
-    // --- Collection Routes ---
-
-    // USERS COLLECTION
+    // --- User Profiles ---
     match /users/{userId} {
-      allow get: if isSignedIn() && (isOwner(userId) || isAdmin());
-      allow list: if isAdmin(); // Users cannot list other users
+      allow get: if isOwner(userId) || isAdmin();
+      // Only allow listing for leaderboard purposes (client must query for non-banned)
+      allow list: if isSignedIn() && existing().isBanned == false && 
+                   (!existing().keys().hasAny(['email', 'password', 'googleId']) || isAdmin());
       
-      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow create: if isOwner(userId) && isValidUser(incoming()) && 
+                    incoming().role == 'user' && 
+                    incoming().isBanned == false;
       
-      allow update: if (
-        isAdmin() || 
-        (isOwner(userId) && 
-         incoming().diff(existing()).affectedKeys().hasOnly(['username', 'photoURL', 'lastLoginAt', 'deviceInfo']))
-      );
+      allow update: if (isOwner(userId) || isAdmin()) && (
+        (isOwner(userId) && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'lastLogin', 'quizzes', 'completedTasks', 'coins'])) ||
+        isAdmin()
+      ) && isValidUser(incoming()) && (incoming().role == existing().role || isAdmin());
+      
+      function isValidUser(data) {
+        return data.email is string && data.email.size() <= 100 &&
+               data.name is string && data.name.size() <= 50 &&
+               data.coins is number && data.coins >= 0 &&
+               data.level is number && data.level >= 0;
+      }
     }
 
-    // ADMINS COLLECTION
-    match /admins/{adminId} {
-      allow read: if isAdmin();
-      // Only allow the super admin document to be created/updated if email matches exactly
-      allow create, update: if isSignedIn() && request.auth.token.email == 'ranarajendar930@gmail.com' && incoming().email == 'ranarajendar930@gmail.com';
-      allow delete: if false;
-    }
-
-    // LOGS COLLECTION
-    match /logs/{logId} {
-      allow read: if isAdmin();
-      allow create: if isAdmin(); // Admins can create logs during actions
-      allow update, delete: if false;
-    }
-
-    // TASKS COLLECTION
+    // --- Tasks ---
     match /tasks/{taskId} {
       allow read: if isSignedIn();
-      allow write: if isAdmin() && isValidTask(incoming());
-    }
-
-    // QUIZ COLLECTION
-    match /quiz/{quizId} {
-      allow read: if isSignedIn();
       allow write: if isAdmin();
+      
+      function isValidTask(data) {
+        return data.title is string && data.title.size() <= 200 &&
+               data.reward is number && data.reward >= 0;
+      }
     }
 
-    // SUBMISSIONS COLLECTION
+    // --- Submissions ---
     match /submissions/{subId} {
-      allow get: if isSignedIn() && (isOwner(existing().userId) || isAdmin());
-      allow list: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow read: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid && isValidSubmission(incoming());
+      allow update: if isAdmin();
       
-      allow create: if isSignedIn() && isValidSubmission(incoming());
-      
-      allow update: if isAdmin() && (
-        incoming().diff(existing()).affectedKeys().hasOnly(['status', 'rejectionReason', 'reviewedAt'])
-      );
-      
-      allow delete: if isAdmin();
+      function isValidSubmission(data) {
+        return data.userId == request.auth.uid &&
+               data.taskId is string &&
+               data.status in ['pending', 'approved', 'rejected'] &&
+               data.reward is number;
+      }
     }
 
-    // WITHDRAWALS COLLECTION
-    match /withdrawals/{wId} {
-      allow get: if isSignedIn() && (isOwner(existing().userId) || isAdmin());
-      allow list: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+    // --- Withdrawals ---
+    match /withdrawals/{wdrId} {
+      allow read: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid && isValidWithdrawal(incoming());
+      allow update: if isAdmin();
       
-      allow create: if isSignedIn() && incoming().userId == request.auth.uid && incoming().status == 'pending';
-      
-      allow update: if isAdmin() && (
-        incoming().diff(existing()).affectedKeys().hasOnly(['status', 'processedAt'])
-      );
+      function isValidWithdrawal(data) {
+        return data.userId == request.auth.uid &&
+               data.amount is number && data.amount >= 1000 &&
+               data.status in ['pending', 'completed', 'failed'];
+      }
     }
 
-    // SETTINGS COLLECTION
-    match /settings/{docId} {
+    // --- Admins ---
+    match /admins/{adminUid} {
       allow read: if isSignedIn();
-      allow write: if isAdmin();
+      allow write: if false; // Only manageable via console/backend
     }
   }
 }

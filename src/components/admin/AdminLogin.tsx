@@ -109,8 +109,8 @@ export const AdminLogin: React.FC = () => {
           <div className="inline-flex items-center justify-center w-20 h-20 bg-purple-600/20 rounded-2.5xl mb-6 ring-1 ring-purple-500/30">
             <ShieldCheck className="text-purple-400" size={40} />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">Nexvy Panel</h1>
-          <p className="text-slate-400">Secure entry for Nexvy Administrators</p>
+          <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">RJ ACCESS PANEL</h1>
+          <p className="text-slate-400">Secure entry for RJ Administrators</p>
         </div>
 
         {error && (
@@ -165,14 +165,14 @@ export const AdminLogin: React.FC = () => {
             ) : (
               <>
                 <LogIn size={22} className="group-hover:translate-x-1 transition-transform" />
-                Access Panel
+                LOGIN RJ
               </>
             )}
           </button>
         </form>
 
         <div className="mt-8 text-center text-slate-500 text-sm">
-          <p>© 2026 Nexvy Earning Platform. Internal use only.</p>
+          <p>© 2026 RJ Earning Platform. Internal use only.</p>
         </div>
       </motion.div>
     </div>

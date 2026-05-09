@@ -1,23 +1,31 @@
-# security_spec.md
+# Nexvy Platform Security Specification
 
 ## Data Invariants
-1. Users can only read and write their own profile data.
-2. Only Admins can access the `admins` collection.
-3. Access to `submissions` and `withdrawals` is limited to the user who created them (read) and Admins (read/write).
-4. `tasks` and `quiz` are read-only for users, but read/write for Admins.
-5. All IDs must be valid alphanumeric strings.
-6. Timestamps must be verified against server time.
+1. A user's coin balance can only be updated via the server or strictly controlled client actions (e.g., small wins in spinner if allowed, but preferred via server).
+2. Tasks can only be created/deleted by admins.
+3. Submissions are immutable once approved/rejected except by admins.
+4. Withdrawal requests are immutable after creation except for status updates by admins.
+5. A user's profile can only be read by themselves or admins.
+6. Leaderboards are publicly readable (limited fields).
 
-## Dirty Dozen Payloads (Rejection Expected)
-1. **Identity Spoofing**: User A trying to update User B's coins.
-2. **Admin Escalation**: User A trying to create an entry in the `admins` collection.
-3. **Ghost Field Update**: Updating a Task with an unauthorized `isVerified` field.
-4. **Invalid Type**: Sending a string for a `rewardCoins` number field.
-5. **PII Leak**: Non-admin user trying to list all user emails.
-6. **Self-Approval**: User A trying to approve their own Task Submission.
-7. **Bypass Maintenance**: User trying to write to `settings` document.
-8. **Negative Amount**: User requesting a withdrawal of -$100.
-9. **Jumbo ID**: Using a 2KB string as a document ID.
-10. **Client Timestamp**: Providing a hardcoded `createdAt` instead of server timestamp.
-11. **Double Coin Reward**: User trying to update their own coins directly without a submission approval.
-12. **Status Shortcut**: Moving a withdrawal directly from `pending` to `successful` without an admin.
+## The "Dirty Dozen" Payloads
+1. User A tries to update User B's coin balance.
+2. User A tries to set themselves as an "admin".
+3. User A tries to create a task.
+4. User A tries to approve their own task submission.
+5. User A tries to withdraw more than their current balance (checked on server, but rules should block if possible).
+6. User A tries to delete someone else's withdrawal request.
+7. User A tries to read all user profiles (list query without filter).
+8. User A tries to update their `createdAt` timestamp.
+9. User A tries to inject a 1MB string into a username field.
+10. User A tries to claim the same referral code multiple times.
+11. User A tries to bypass the daily reward cooldown.
+12. User A tries to submit a task that doesn't exist.
+
+## Collections & Roles
+- `users`: {userId} matches auth.uid.
+- `tasks`: Read-only for users, write for admins.
+- `submissions`: Create for users, update for admins.
+- `withdrawals`: Create for users, update for admins.
+- `leaderboard`: Summarized view (or just a query on users).
+- `admins`: List of uid's with admin privileges.

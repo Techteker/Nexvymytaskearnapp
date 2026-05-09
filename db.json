@@ -1,12 +1,37 @@
 {
   "users": [
     {
-      "id": "1",
-      "username": "Guest User",
-      "email": "user@gmail.com",
-      "coins": 4027,
-      "level": 12,
-      "joinedAt": "2024-05-08T00:00:00Z"
+      "id": "admin-1",
+      "uid": "admin-1",
+      "email": "ranarajendar930@gmail.com",
+      "name": "Super Admin",
+      "password": "$2b$10$I.Vupg/S.bRCJ1O/n0c7MueMVT.5Im6A/gotVT6hs0PZ/YA56g8y2",
+      "coins": 999999,
+      "level": 100,
+      "role": "super_admin",
+      "joinedAt": "2026-05-09T10:10:37.735Z"
+    },
+    {
+      "id": "test-1",
+      "uid": "test-1",
+      "email": "test@gmail.com",
+      "name": "Test User",
+      "password": "$2b$10$I.Vupg/S.bRCJ1O/n0c7MueMVT.5Im6A/gotVT6hs0PZ/YA56g8y2",
+      "coins": 1000,
+      "level": 1,
+      "role": "user",
+      "joinedAt": "2026-05-09T10:10:37.736Z"
+    },
+    {
+      "id": "user-rj",
+      "uid": "user-rj",
+      "email": "ranarajendar999@gmail.com",
+      "name": "RJ User",
+      "password": "$2b$10$I.Vupg/S.bRCJ1O/n0c7MueMVT.5Im6A/gotVT6hs0PZ/YA56g8y2",
+      "coins": 5000,
+      "level": 1,
+      "role": "user",
+      "joinedAt": "2026-05-09T10:11:00Z"
     }
   ],
   "leaderboard": [

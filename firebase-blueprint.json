@@ -2,132 +2,80 @@
   "entities": {
     "User": {
       "title": "User",
-      "description": "App user profile information.",
+      "description": "App user profile",
       "type": "object",
       "properties": {
-        "userId": { "type": "string" },
-        "email": { "type": "string" },
-        "displayName": { "type": "string" },
-        "photoURL": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "name": { "type": "string" },
         "coins": { "type": "number" },
         "level": { "type": "number" },
         "referralCode": { "type": "string" },
         "referredBy": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "admin", "super_admin"] },
         "isBanned": { "type": "boolean" },
-        "deviceInfo": { "type": "object" },
-        "ipAddress": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" },
-        "lastLoginAt": { "type": "string", "format": "date-time" }
+        "lastLogin": { "type": "string", "format": "date-time" }
       },
-      "required": ["userId", "email", "coins"]
-    },
-    "Admin": {
-      "title": "Admin",
-      "description": "Admin users with panel access.",
-      "type": "object",
-      "properties": {
-        "email": { "type": "string" },
-        "role": { "type": "string", "enum": ["super_admin", "admin"] },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["email", "role"]
+      "required": ["email", "name", "coins", "role"]
     },
     "Task": {
       "title": "Task",
-      "description": "Earning tasks for users.",
+      "description": "Earning task",
       "type": "object",
       "properties": {
         "title": { "type": "string" },
-        "description": { "type": "string" },
         "category": { "type": "string" },
-        "rewardCoins": { "type": "number" },
-        "link": { "type": "string" },
-        "instructions": { "type": "string" },
-        "difficulty": { "type": "string" },
-        "expiryDate": { "type": "string", "format": "date" },
-        "status": { "type": "string", "enum": ["active", "inactive"] },
-        "imageUrl": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["title", "category", "rewardCoins"]
-    },
-    "Quiz": {
-      "title": "Quiz",
-      "description": "Games or AI generated quizzes.",
-      "type": "object",
-      "properties": {
-        "topic": { "type": "string" },
-        "difficulty": { "type": "string" },
-        "questions": { "type": "array" },
-        "rewardCoins": { "type": "number" },
-        "timer": { "type": "number" },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["topic", "questions"]
+        "reward": { "type": "number" },
+        "description": { "type": "string" },
+        "url": { "type": "string" },
+        "active": { "type": "boolean" }
+      }
     },
     "Submission": {
       "title": "Submission",
-      "description": "User task completion proofs.",
+      "description": "Task completion submission",
       "type": "object",
       "properties": {
         "userId": { "type": "string" },
         "taskId": { "type": "string" },
-        "screenshotUrl": { "type": "string" },
-        "status": { "type": "string", "enum": ["pending", "under_review", "approved", "rejected"] },
-        "rejectionReason": { "type": "string" },
-        "submittedAt": { "type": "string", "format": "date-time" },
-        "reviewedAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["userId", "taskId", "status"]
+        "proof": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "reward": { "type": "number" }
+      }
     },
     "Withdrawal": {
       "title": "Withdrawal",
-      "description": "User payment requests.",
+      "description": "Withdrawal request",
       "type": "object",
       "properties": {
         "userId": { "type": "string" },
         "amount": { "type": "number" },
         "method": { "type": "string" },
-        "paymentDetails": { "type": "string" },
-        "status": { "type": "string", "enum": ["pending", "processing", "successful", "rejected"] },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["userId", "amount", "status"]
-    },
-    "Settings": {
-      "title": "Settings",
-      "description": "Global app configurations.",
-      "type": "object",
-      "properties": {
-        "maintenanceMode": { "type": "boolean" },
-        "minWithdrawal": { "type": "number" },
-        "referralCommission": { "type": "number" },
-        "dailyReward": { "type": "number" },
-        "appName": { "type": "string" },
-        "appLogo": { "type": "string" }
-      }
-    },
-    "Log": {
-      "title": "Log",
-      "description": "Admin activity history",
-      "type": "object",
-      "properties": {
-        "adminId": { "type": "string" },
-        "action": { "type": "string" },
         "details": { "type": "string" },
-        "timestamp": { "type": "string", "format": "date-time" }
-      },
-      "required": ["adminId", "action", "timestamp"]
+        "status": { "type": "string", "enum": ["pending", "completed", "failed"] }
+      }
     }
   },
   "firestore": {
-    "/users": { "schema": "User", "description": "User profiles" },
-    "/admins": { "schema": "Admin", "description": "Admin roles" },
-    "/tasks": { "schema": "Task", "description": "Earning tasks" },
-    "/quiz": { "schema": "Quiz", "description": "Quiz content" },
-    "/submissions": { "schema": "Submission", "description": "Task submissions" },
-    "/withdrawals": { "schema": "Withdrawal", "description": "Payment requests" },
-    "/settings": { "schema": "Settings", "description": "App settings" },
-    "/logs": { "schema": "Log", "description": "Activity logs" }
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile data"
+    },
+    "/tasks/{taskId}": {
+      "schema": "Task",
+      "description": "Available tasks"
+    },
+    "/submissions/{subId}": {
+      "schema": "Submission",
+      "description": "Task submissions"
+    },
+    "/withdrawals/{wdrId}": {
+      "schema": "Withdrawal",
+      "description": "Withdrawal requests"
+    },
+    "/admins/{adminUid}": {
+      "schema": { "type": "object", "properties": { "email": { "type": "string" } } },
+      "description": "List of authorized admins"
+    }
   }
 }

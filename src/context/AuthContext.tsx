@@ -1,18 +1,22 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged, User as FirebaseUser, signOut, getAuth, Auth } from 'firebase/auth';
-import { doc, onSnapshot, getDoc, getFirestore, Firestore } from 'firebase/firestore';
+import { doc, onSnapshot, getDoc, getFirestore, Firestore, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth as initialAuth, db as initialDb, waitForFirebase } from '../lib/firebase';
 import { UserRole } from '../types';
 
 interface UserData {
   uid: string;
   email: string;
-  displayName: string;
-  username: string;
+  name: string;
+  photoURL?: string;
   coins: number;
   level: number;
+  referralCode?: string;
+  referredBy?: string;
   role: UserRole;
   isBanned: boolean;
+  createdAt?: any;
+  lastLogin?: any;
 }
 
 interface AuthContextType {
@@ -51,6 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const token = localStorage.getItem('token');
         if (token) {
           try {
+            console.log("Attempting local auth sync...");
             const res = await fetch('/api/user/me', {
               headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -59,21 +64,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               setUser({
                 uid: data.id,
                 email: data.email,
-                displayName: data.username,
-                username: data.username,
+                name: data.username || data.name,
                 coins: data.coins || 0,
                 level: data.level || 1,
                 role: data.role || UserRole.USER,
-                isBanned: data.isBanned || false
+                isBanned: data.isBanned || false,
+                referralCode: data.referralCode,
+                referredBy: data.referredBy,
               });
-            } else {
+            } else if (res.status === 401) {
               localStorage.removeItem('token');
             }
           } catch (e) {
-            console.error("Local auth check failed:", e);
+            console.warn("Local auth check failed (network/server error):", e);
+            // Don't log out if it's just a network error, try again later via refreshUser
           }
         }
-        setAuthReady(true); // System is "ready" even in local mode
+        setAuthReady(true);
         setLoading(false);
       }
     };
@@ -83,8 +90,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (!currentAuth) return;
 
-    const unsubscribeAuth = onAuthStateChanged(currentAuth, (fUser) => {
+    const unsubscribeAuth = onAuthStateChanged(currentAuth, async (fUser) => {
       setFirebaseUser(fUser);
+      if (fUser && currentDb) {
+        // Update last login
+        const userDocRef = doc(currentDb, 'users', fUser.uid);
+        try {
+          await setDoc(userDocRef, { lastLogin: serverTimestamp() }, { merge: true });
+        } catch (e) {
+          console.error("Failed to update last login:", e);
+        }
+      }
       if (!fUser) {
         setUser(null);
         setLoading(false);
@@ -115,21 +131,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setUser({
               uid: firebaseUser.uid,
               email: firebaseUser.email || '',
-              displayName: firebaseUser.displayName || '',
-              username: data.username || firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
+              name: data.name || firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
+              photoURL: data.photoURL || firebaseUser.photoURL || '',
               coins: data.coins || 0,
               level: data.level || 1,
+              referralCode: data.referralCode || '',
+              referredBy: data.referredBy || '',
               role: isAdmin ? (adminSnap.data()?.role || UserRole.ADMIN) : UserRole.USER,
-              isBanned: data.isBanned || false
+              isBanned: data.isBanned || false,
+              createdAt: data.createdAt,
+              lastLogin: data.lastLogin
             });
           } else {
             setUser({
               uid: firebaseUser.uid,
               email: firebaseUser.email || '',
-              displayName: firebaseUser.displayName || '',
-              username: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
+              name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
+              photoURL: firebaseUser.photoURL || '',
               coins: 0,
               level: 1,
+              referralCode: '',
+              referredBy: '',
               role: isAdmin ? (adminSnap.data()?.role || UserRole.ADMIN) : UserRole.USER,
               isBanned: false
             });
@@ -185,12 +207,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser({
             uid: firebaseUser.uid,
             email: firebaseUser.email || '',
-            displayName: firebaseUser.displayName || '',
-            username: data.username || firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
+            name: data.name || firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
+            photoURL: data.photoURL || firebaseUser.photoURL || '',
             coins: data.coins || 0,
             level: data.level || 1,
+            referralCode: data.referralCode || '',
+            referredBy: data.referredBy || '',
             role: isUserAdmin ? (adminSnap.data()?.role || UserRole.ADMIN) : UserRole.USER,
-            isBanned: data.isBanned || false
+            isBanned: data.isBanned || false,
+            createdAt: data.createdAt,
+            lastLogin: data.lastLogin
           });
         }
       } catch (e) {
@@ -208,12 +234,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setUser({
               uid: data.id,
               email: data.email,
-              displayName: data.username,
-              username: data.username,
+              name: data.username || data.name,
               coins: data.coins || 0,
               level: data.level || 1,
               role: data.role || UserRole.USER,
-              isBanned: data.isBanned || false
+              isBanned: data.isBanned || false,
+              referralCode: data.referralCode,
+              referredBy: data.referredBy,
             });
           }
         } catch (e) {

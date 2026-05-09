@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, query, orderBy, where, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
 import { Withdrawal, WithdrawalStatus } from '../../types';
 import { adminService } from '../../services/adminService';
 import { 
@@ -26,31 +24,18 @@ export const Withdrawals: React.FC = () => {
   }, [filter]);
 
   const loadWithdrawals = async () => {
-    if (!db) return;
     setLoading(true);
-    const coll = collection(db, 'withdrawals');
-    const q = filter === 'all' ? query(coll, orderBy('createdAt', 'desc')) : query(coll, where('status', '==', filter), orderBy('createdAt', 'desc'));
-    const snap = await getDocs(q);
-    setWithdrawals(snap.docs.map(d => ({ ...d.data(), id: d.id } as Withdrawal)));
+    const data = await adminService.getWithdrawals();
+    const filtered = filter === 'all' ? data : data.filter((w: any) => w.status === filter);
+    setWithdrawals(filtered);
     setLoading(false);
   };
 
   const updateStatus = async (id: string, status: WithdrawalStatus) => {
-    if (!db) return;
-    const withdrawal = withdrawals.find(w => w.id === id);
-    await updateDoc(doc(db, 'withdrawals', id), {
-      status,
-      processedAt: serverTimestamp()
-    });
-    
-    // Log action
-    await adminService.logAction(
-      'SUPER_ADMIN', 
-      'WITHDRAWAL_UPDATE', 
-      `${status.toUpperCase()} withdrawal request ${id} for $${withdrawal?.amount.toFixed(2)}.`
-    );
-
-    loadWithdrawals();
+    const success = await adminService.updateWithdrawalStatus(id, status);
+    if (success) {
+      loadWithdrawals();
+    }
   };
 
   return (
@@ -140,7 +125,7 @@ export const Withdrawals: React.FC = () => {
                        </div>
                     ) : (
                       <span className="text-slate-600 text-xs italic">
-                        {w.processedAt ? new Date(w.processedAt.seconds * 1000).toLocaleDateString() : 'Processed'}
+                        {w.processedAt ? new Date(w.processedAt).toLocaleDateString() : (w.createdAt ? new Date(w.createdAt).toLocaleDateString() : 'Processed')}
                       </span>
                     )}
                   </td>

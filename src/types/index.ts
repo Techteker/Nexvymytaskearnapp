@@ -6,18 +6,17 @@ export enum UserRole {
 
 export interface User {
   uid: string;
+  name: string;
   email: string;
-  displayName: string;
   photoURL?: string;
   coins: number;
   level: number;
   referralCode: string;
   referredBy?: string;
-  isBanned: boolean;
-  deviceInfo?: any;
-  ipAddress?: string;
   createdAt: any;
-  lastLoginAt: any;
+  lastLogin: any;
+  // Keep some legacy or extra if needed for UI, but prioritize requested ones
+  isBanned?: boolean;
 }
 
 export interface Admin {

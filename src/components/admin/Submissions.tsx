@@ -30,15 +30,16 @@ export const Submissions: React.FC = () => {
 
   const loadSubmissions = async () => {
     setLoading(true);
-    const data = await adminService.getSubmissions(filter === 'all' ? undefined : filter);
-    setSubmissions(data);
+    const data = await adminService.getSubmissions();
+    const filtered = filter === 'all' ? data : data.filter((s: any) => s.status === filter);
+    setSubmissions(filtered);
     setLoading(false);
   };
 
   const handleReview = async (id: string, status: 'approved' | 'rejected') => {
     setLoading(true);
     try {
-      await adminService.reviewSubmission(id, status, status === 'rejected' ? reason : undefined);
+      await adminService.reviewSubmission(id, status);
       setSelectedSub(null);
       setReason('');
       loadSubmissions();
@@ -91,9 +92,9 @@ export const Submissions: React.FC = () => {
             >
                <div 
                  onClick={() => setSelectedSub(sub)}
-                 className="w-full md:w-32 h-20 bg-slate-800 rounded-2xl overflow-hidden cursor-pointer relative group-hover:ring-2 ring-purple-500/50 transition-all shrink-0"
+                 className="w-full md:w-32 h-20 bg-slate-800 rounded-2xl overflow-hidden cursor-pointer relative group-hover:ring-2 ring-purple-500/50 transition-all shrink-0 flex items-center justify-center p-2"
                >
-                 <img src={sub.screenshotUrl} alt="Proof" className="w-full h-full object-cover opacity-50 group-hover:opacity-100 transition-opacity" />
+                 <p className="text-[10px] text-slate-500 line-clamp-3 text-center">{(sub as any).proof || 'No proof text'}</p>
                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/40 transition-opacity">
                     <Eye className="text-white" size={20} />
                  </div>
@@ -118,7 +119,7 @@ export const Submissions: React.FC = () => {
                     <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Timestamp</p>
                     <div className="flex items-center gap-2 text-slate-200">
                       <Clock size={14} className="text-slate-500" />
-                      <span className="text-sm">{sub.submittedAt ? new Date(sub.submittedAt.seconds * 1000).toLocaleString() : 'N/A'}</span>
+                      <span className="text-sm">{sub.submittedAt ? new Date(sub.submittedAt).toLocaleString() : 'N/A'}</span>
                     </div>
                   </div>
                </div>
@@ -159,9 +160,12 @@ export const Submissions: React.FC = () => {
               initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
               className="relative w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-3.5xl overflow-hidden shadow-2xl flex flex-col md:flex-row h-full max-h-[85vh]"
             >
-               {/* Left: Image Preview */}
-               <div className="flex-1 bg-black flex items-center justify-center overflow-hidden border-r border-slate-800">
-                  <img src={selectedSub.screenshotUrl} alt="Final Proof" className="max-w-full max-h-full object-contain" />
+               {/* Left: Proof Details */}
+               <div className="flex-1 bg-slate-950 flex flex-col p-8 overflow-y-auto border-r border-slate-800">
+                  <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Submission Proof</h3>
+                  <div className="p-6 bg-slate-900 border border-slate-800 rounded-3xl text-slate-200 font-mono text-sm whitespace-pre-wrap">
+                    {(selectedSub as any).proof || 'No technical proof provided.'}
+                  </div>
                </div>
 
                {/* Right: Actions */}
@@ -175,7 +179,7 @@ export const Submissions: React.FC = () => {
                     <div className="p-4 bg-slate-800/50 rounded-2xl border border-slate-700">
                        <p className="text-xs text-slate-500 mb-1">Submitted On</p>
                        <p className="text-sm font-medium text-slate-200">
-                         {selectedSub.submittedAt ? new Date(selectedSub.submittedAt.seconds * 1000).toLocaleString() : 'N/A'}
+                         {selectedSub.submittedAt ? new Date(selectedSub.submittedAt).toLocaleString() : 'N/A'}
                        </p>
                     </div>
                   </div>

@@ -115,7 +115,7 @@ export const ActivityLogs: React.FC = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase">
                         <Calendar size={12} />
-                        {log.timestamp?.toDate().toLocaleString()}
+                        {log.timestamp ? new Date(log.timestamp).toLocaleString() : 'N/A'}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { adminService } from '../../services/adminService';
 import { 
   Settings as SettingsIcon, 
   Target, 
@@ -15,6 +16,48 @@ import { motion } from 'motion/react';
 
 export const SettingsPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'app' | 'ads' | 'notify' | 'security'>('app');
+  const [settings, setSettings] = useState<any>({
+    appName: 'Nexvy',
+    minWithdrawal: 1000,
+    referralBonus: 500,
+    signupBonus: 100,
+    commissionRate: 10,
+    maintenanceMode: false,
+    adMobId: '',
+    rewardedAdId: '',
+    interstitialAdId: '',
+    bannerAdId: ''
+  });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [notif, setNotif] = useState({ title: '', message: '' });
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    setLoading(true);
+    const data = await adminService.getSettings();
+    if (data) setSettings(data);
+    setLoading(false);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    await adminService.updateSettings(settings);
+    setSaving(false);
+    alert('Settings saved successfully!');
+  };
+
+  const handleBroadcast = async () => {
+    if (!notif.title || !notif.message) return alert('Please enter title and message');
+    setSaving(true);
+    await adminService.sendBroadcast(notif.title, notif.message);
+    setSaving(false);
+    setNotif({ title: '', message: '' });
+    alert('Broadcast sent successfully!');
+  };
 
   const tabs = [
     { id: 'app', label: 'App Settings', icon: Smartphone },
@@ -22,6 +65,14 @@ export const SettingsPanel: React.FC = () => {
     { id: 'notify', label: 'Notifications', icon: Bell },
     { id: 'security', label: 'Security', icon: ShieldCheck },
   ];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <RefreshCw className="animate-spin text-purple-500" size={32} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 pb-12">
@@ -58,7 +109,12 @@ export const SettingsPanel: React.FC = () => {
                       </h3>
                       <div>
                         <label className="block text-sm font-medium text-slate-400 mb-2">App Name</label>
-                        <input type="text" defaultValue="Nexvy" className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none focus:ring-2 focus:ring-purple-500" />
+                        <input 
+                          type="text" 
+                          value={settings.appName} 
+                          onChange={(e) => setSettings({ ...settings, appName: e.target.value })}
+                          className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none focus:ring-2 focus:ring-purple-500" 
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-400 mb-2">Accent Color</label>
@@ -77,21 +133,33 @@ export const SettingsPanel: React.FC = () => {
                             <p className="font-bold text-white">Maintenance Mode</p>
                             <p className="text-xs text-slate-500">Block user access while updating</p>
                          </div>
-                         <div className="w-12 h-6 bg-slate-700 rounded-full relative cursor-pointer">
-                            <div className="absolute right-1 top-1 w-4 h-4 bg-slate-500 rounded-full"></div>
+                         <div 
+                           onClick={() => setSettings({ ...settings, maintenanceMode: !settings.maintenanceMode })}
+                           className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors ${settings.maintenanceMode ? 'bg-purple-600' : 'bg-slate-700'}`}
+                         >
+                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${settings.maintenanceMode ? 'right-1' : 'left-1'}`}></div>
                          </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-400 mb-2 flex items-center gap-2">
-                          <Coins size={14} /> Min Withdrawal ($)
+                          <Coins size={14} /> Min Withdrawal (Coins)
                         </label>
-                        <input type="number" defaultValue="5.00" className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none focus:ring-2 focus:ring-purple-500" />
+                        <input 
+                          type="number" 
+                          value={settings.minWithdrawal} 
+                          onChange={(e) => setSettings({ ...settings, minWithdrawal: parseInt(e.target.value) })}
+                          className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none focus:ring-2 focus:ring-purple-500" 
+                        />
                       </div>
                    </div>
                 </div>
                 <div className="pt-8 border-t border-slate-800 flex justify-end">
-                   <button className="flex items-center gap-2 px-8 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-2xl shadow-xl transition-all">
-                      <Save size={20} /> Save Changes
+                   <button 
+                     onClick={handleSave}
+                     disabled={saving}
+                     className="flex items-center gap-2 px-8 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-2xl shadow-xl transition-all disabled:opacity-50"
+                   >
+                      <Save size={20} /> {saving ? 'Saving...' : 'Save Changes'}
                    </button>
                 </div>
              </motion.div>
@@ -104,47 +172,91 @@ export const SettingsPanel: React.FC = () => {
                       <h3 className="text-lg font-bold text-white">Google AdMob Configuration</h3>
                       <div>
                         <label className="block text-sm font-medium text-slate-400 mb-2">App ID</label>
-                        <input type="text" placeholder="ca-app-pub-xxxxxxxxxxxxxxxx" className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none text-sm font-mono" />
+                        <input 
+                          type="text" 
+                          value={settings.adMobId || ''} 
+                          onChange={(e) => setSettings({ ...settings, adMobId: e.target.value })}
+                          placeholder="ca-app-pub-xxxxxxxxxxxxxxxx" 
+                          className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none text-sm font-mono" 
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-400 mb-2">Rewarded Ad ID</label>
-                        <input type="text" placeholder="ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx" className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none text-sm font-mono" />
+                        <input 
+                          type="text" 
+                          value={settings.rewardedAdId || ''} 
+                          onChange={(e) => setSettings({ ...settings, rewardedAdId: e.target.value })}
+                          placeholder="ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx" 
+                          className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none text-sm font-mono" 
+                        />
                       </div>
                    </div>
                    <div className="space-y-6 pt-12">
                       <div>
                         <label className="block text-sm font-medium text-slate-400 mb-2">Interstitial Ad ID</label>
-                        <input type="text" placeholder="ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx" className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none text-sm font-mono" />
+                        <input 
+                          type="text" 
+                          value={settings.interstitialAdId || ''} 
+                          onChange={(e) => setSettings({ ...settings, interstitialAdId: e.target.value })}
+                          placeholder="ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx" 
+                          className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none text-sm font-mono" 
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-400 mb-2">Banner Ad ID</label>
-                        <input type="text" placeholder="ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx" className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none text-sm font-mono" />
+                        <input 
+                          type="text" 
+                          value={settings.bannerAdId || ''} 
+                          onChange={(e) => setSettings({ ...settings, bannerAdId: e.target.value })}
+                          placeholder="ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx" 
+                          className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none text-sm font-mono" 
+                        />
                       </div>
                    </div>
                  </div>
                  <div className="pt-8 border-t border-slate-800 flex items-center justify-between">
                     <p className="text-xs text-slate-500 italic">Ads are currently enabled in production mode.</p>
-                    <button className="flex items-center gap-2 px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-xl transition-all">
-                      <Save size={20} /> Update Ad IDs
+                    <button 
+                      onClick={handleSave}
+                      disabled={saving}
+                      className="flex items-center gap-2 px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-xl transition-all disabled:opacity-50"
+                    >
+                      <Save size={20} /> {saving ? 'Saving...' : 'Update Ad IDs'}
                    </button>
                  </div>
              </motion.div>
            )}
 
-           {activeTab === 'notify' && (
+            {activeTab === 'notify' && (
              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
                 <div className="max-w-xl space-y-6">
                    <h3 className="text-lg font-bold text-white">Broadcast Notification</h3>
                    <div>
                       <label className="block text-sm font-medium text-slate-400 mb-2">Message Title</label>
-                      <input type="text" placeholder="New Offer Alert!" className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none" />
+                      <input 
+                        type="text" 
+                        value={notif.title}
+                        onChange={(e) => setNotif({ ...notif, title: e.target.value })}
+                        placeholder="New Offer Alert!" 
+                        className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none" 
+                      />
                    </div>
                    <div>
                       <label className="block text-sm font-medium text-slate-400 mb-2">Message Body</label>
-                      <textarea rows={4} placeholder="Complete the new survey and win 500 coins..." className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none" />
+                      <textarea 
+                        rows={4} 
+                        value={notif.message}
+                        onChange={(e) => setNotif({ ...notif, message: e.target.value })}
+                        placeholder="Complete the new survey and win 500 coins..." 
+                        className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none" 
+                      />
                    </div>
-                   <button className="flex items-center gap-2 px-8 py-4 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-2xl shadow-xl transition-all w-full justify-center">
-                      <Save size={20} /> Send Broadcast to All Users
+                   <button 
+                     onClick={handleBroadcast}
+                     disabled={saving}
+                     className="flex items-center gap-2 px-8 py-4 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-2xl shadow-xl transition-all w-full justify-center disabled:opacity-50"
+                   >
+                      <Save size={20} /> {saving ? 'Sending...' : 'Send Broadcast to All Users'}
                    </button>
                 </div>
              </motion.div>

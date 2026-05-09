@@ -4,6 +4,7 @@ import { TopBar } from '../components/TopBar';
 import { CoinIcon } from '../components/CoinIcon';
 import { Gift, Lock, Check } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { useAuth } from '../context/AuthContext';
 
 const DAYS = [
   { day: 1, reward: 100, status: 'claimed' },
@@ -15,9 +16,24 @@ const DAYS = [
 ];
 
 export const DailyGift = () => {
+  const { refreshUser } = useAuth();
   const [loading, setLoading] = React.useState(false);
+  const [status, setStatus] = React.useState({
+    streak: 0,
+    isClaimable: false,
+    lastClaim: null
+  });
+
+  React.useEffect(() => {
+    fetch('/api/user/daily-gift/status', {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    })
+    .then(res => res.json())
+    .then(setStatus);
+  }, []);
 
   const claim = async () => {
+    if (!status.isClaimable) return alert('You already claimed today!');
     setLoading(true);
     try {
       const res = await fetch('/api/user/daily-gift', {
@@ -37,6 +53,7 @@ export const DailyGift = () => {
         colors: ['#fbbf24', '#ffffff']
       });
       alert(`Claimed ${data.reward} coins!`);
+      await refreshUser();
       window.location.reload();
     } catch (err: any) {
       alert(err.message);
@@ -44,6 +61,15 @@ export const DailyGift = () => {
       setLoading(false);
     }
   };
+
+  const REWARDS = [100, 200, 300, 400, 500, 600];
+  const items = REWARDS.map((reward, i) => {
+    const dayNum = i + 1;
+    let itemStatus = 'locked';
+    if (dayNum <= status.streak) itemStatus = 'claimed';
+    else if (dayNum === status.streak + 1 && status.isClaimable) itemStatus = 'next';
+    return { day: dayNum, reward, status: itemStatus };
+  });
 
   return (
     <motion.div
@@ -60,7 +86,7 @@ export const DailyGift = () => {
       </div>
 
       <div className="grid grid-cols-3 gap-3">
-        {DAYS.map((item) => (
+        {items.map((item) => (
           <div 
             key={item.day}
             className={`gaming-card p-2 flex flex-col items-center gap-2 relative transition-all min-h-[100px] justify-center ${

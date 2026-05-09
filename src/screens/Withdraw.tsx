@@ -15,10 +15,22 @@ const methods = [
 
 export const Withdraw = () => {
   const { user, refreshUser } = useAuth();
+  const [withdrawals, setWithdrawals] = React.useState<any[]>([]);
   const [selected, setSelected] = React.useState('paytm');
   const [loading, setLoading] = React.useState(false);
   const [details, setDetails] = React.useState('');
   const [amount, setAmount] = React.useState('');
+
+  const loadData = async () => {
+    const data = await apiService.getWithdrawals();
+    setWithdrawals(data);
+  };
+
+  React.useEffect(() => {
+    loadData();
+  }, []);
+
+  const minWithdrawalValue = (user as any)?.settings?.minWithdrawal || 1000;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,11 +39,8 @@ export const Withdraw = () => {
       alert("Insufficient balance");
       return;
     }
-    if (withdrawAmount < 5) { // Assuming coins value is higher, but demo check
-       // Using small number for testing if needed, but keeping user limit
-    }
-    if (withdrawAmount < 50000) {
-      alert("Minimum withdrawal is 50,000 coins");
+    if (withdrawAmount < minWithdrawalValue) {
+      alert(`Minimum withdrawal is ${minWithdrawalValue.toLocaleString()} coins`);
       return;
     }
 
@@ -43,6 +52,7 @@ export const Withdraw = () => {
       setAmount('');
       setDetails('');
       await refreshUser();
+      loadData();
     } catch (err: any) {
       alert(err.message);
     } finally {
@@ -120,7 +130,7 @@ export const Withdraw = () => {
                 required
             />
             <p className="text-[10px] text-white/50 text-center font-bold mt-2">
-              *Minimum withdrawal is 50,000 coins ($5 USD)
+              *Minimum withdrawal is {minWithdrawalValue.toLocaleString()} coins
             </p>
         </div>
 
@@ -140,18 +150,15 @@ export const Withdraw = () => {
             <History className="w-4 h-4 text-white/20" />
          </div>
          <div className="flex flex-col gap-3">
-            {[
-                { type: 'Paytm', date: 'Yesterday', amount: 5000, status: 'Success', icon: CheckCircle2, statusColor: 'text-green-500' },
-                { type: 'PayPal', date: '3 days ago', amount: 10000, status: 'Pending', icon: Clock, statusColor: 'text-yellow-500' },
-            ].map((item, i) => (
+            {withdrawals.slice(0, 10).map((item, i) => (
                 <div key={i} className="gaming-card p-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">
                             <Wallet className="w-5 h-5 text-white/40" />
                         </div>
                         <div>
-                            <h4 className="text-sm font-bold">{item.type} Payout</h4>
-                            <p className="text-[10px] text-white/40">{item.date}</p>
+                            <h4 className="text-sm font-bold capitalize">{item.method} Payout</h4>
+                            <p className="text-[10px] text-white/40">{new Date(item.createdAt).toLocaleDateString()}</p>
                         </div>
                     </div>
                     <div className="text-right">
@@ -159,13 +166,21 @@ export const Withdraw = () => {
                             <CoinIcon size={14} />
                             <span className="font-bold text-sm text-white">-{item.amount}</span>
                         </div>
-                        <div className={`flex items-center gap-1 mt-1 ${item.statusColor}`}>
-                            <item.icon className="w-3 h-3" />
-                            <span className="text-[10px] font-bold uppercase">{item.status}</span>
+                        <div className={`flex items-center gap-1 mt-1 ${
+                          item.status === 'successful' ? 'text-green-500' :
+                          item.status === 'pending' ? 'text-yellow-500' :
+                          item.status === 'processing' ? 'text-blue-500' : 'text-red-500'
+                        }`}>
+                            <span className="text-[10px] font-black uppercase tracking-tighter">{item.status}</span>
                         </div>
                     </div>
                 </div>
             ))}
+            {withdrawals.length === 0 && (
+              <div className="text-center py-8 text-white/20 font-bold uppercase text-[10px] tracking-widest">
+                No withdrawal history
+              </div>
+            )}
          </div>
       </div>
     </motion.div>
