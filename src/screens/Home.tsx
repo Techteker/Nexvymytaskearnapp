@@ -4,6 +4,8 @@ import { TopBar } from '../components/TopBar';
 import { CoinIcon } from '../components/CoinIcon';
 import { useNavigate } from 'react-router-dom';
 import { TrendingUp, Users, Trophy, ChevronRight } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { apiService } from '../services/api';
 
 const StatCard = ({ icon: Icon, label, value, color }: any) => (
   <div className="gaming-card p-4 flex flex-col gap-2">
@@ -19,6 +21,12 @@ const StatCard = ({ icon: Icon, label, value, color }: any) => (
 
 export const Home = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [tasks, setTasks] = React.useState<any[]>([]);
+
+  React.useEffect(() => {
+    apiService.getTasks().then(setTasks);
+  }, []);
 
   return (
     <motion.div
@@ -27,6 +35,28 @@ export const Home = () => {
       className="flex flex-col gap-6"
     >
       <TopBar />
+
+      {/* Stats Dashboard */}
+      <div className="grid grid-cols-3 gap-3">
+        <StatCard 
+          icon={TrendingUp} 
+          label="Today" 
+          value={(user?.coins || 0).toLocaleString()} 
+          color="bg-green-500" 
+        />
+        <StatCard 
+          icon={Trophy} 
+          label="Rank" 
+          value="#12" 
+          color="bg-blue-500" 
+        />
+        <StatCard 
+          icon={Users} 
+          label="Invites" 
+          value="02" 
+          color="bg-purple-500" 
+        />
+      </div>
 
       {/* Banner */}
       <div className="gaming-card p-6 bg-gradient-to-br from-blue-600 to-indigo-900 border-white/20 relative overflow-hidden group shadow-2xl">
@@ -74,26 +104,31 @@ export const Home = () => {
       <div>
         <div className="flex items-center justify-between mb-4 px-2">
           <h3 className="font-display font-black text-lg uppercase italic text-white/80 tracking-tight">Hot Tasks</h3>
-          <ChevronRight className="w-5 h-5 text-white/40" />
+          <button onClick={() => navigate('/tasks')} className="text-[10px] font-black text-gaming-accent uppercase hover:underline">View All</button>
         </div>
-        <div className="flex flex-col gap-3">
-          {[1, 2].map((i) => (
-            <div key={i} className="gaming-card p-4 flex items-center justify-between group hover:bg-blue-700/30 transition-all cursor-pointer border-white/10">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-blue-900/60 flex items-center justify-center border-2 border-white/10 shadow-inner">
-                  <TrendingUp className="w-7 h-7 text-gaming-accent" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-black text-white">Mystery Box</h4>
-                  <p className="text-[10px] text-white/40 font-bold uppercase tracking-tight">Open for surprises</p>
-                </div>
+        <div className="grid grid-cols-2 gap-3">
+          {tasks.slice(0, 4).map((task) => (
+            <div 
+              key={task.id} 
+              onClick={() => navigate(`/task/${task.id}`)}
+              className="gaming-card p-4 flex flex-col items-center text-center gap-3 group hover:bg-blue-700/30 transition-all cursor-pointer border-white/10"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-blue-900/60 flex items-center justify-center border-2 border-white/10 shadow-inner group-hover:border-gaming-accent/50 transition-colors">
+                <TrendingUp className="w-8 h-8 text-gaming-accent" />
               </div>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1 bg-white/5 py-1 px-3 rounded-full border border-white/10">
-                  <CoinIcon size={16} />
-                  <span className="text-xs font-black text-white">+250</span>
-                </div>
+              <div>
+                <h4 className="text-xs font-black text-white leading-tight mb-1">{task.title}</h4>
+                <p className="text-[10px] text-white/40 font-bold uppercase tracking-tight">{task.category}</p>
               </div>
+              <div className="flex items-center gap-1 bg-white/5 py-1 px-3 rounded-full border border-white/10">
+                <CoinIcon size={14} />
+                <span className="text-[10px] font-black text-white">+{task.reward}</span>
+              </div>
+              <button 
+                className="w-full mt-2 py-2 bg-gaming-accent/10 border border-gaming-accent/30 rounded-xl text-[10px] font-black text-gaming-accent uppercase hover:bg-gaming-accent hover:text-white transition-all"
+              >
+                Start
+              </button>
             </div>
           ))}
         </div>

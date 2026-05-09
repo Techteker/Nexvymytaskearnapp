@@ -3,6 +3,8 @@ import { motion } from 'motion/react';
 import { TopBar } from '../components/TopBar';
 import { Wallet, Smartphone, CreditCard, ChevronRight, History, CheckCircle2, Clock } from 'lucide-react';
 import { CoinIcon } from '../components/CoinIcon';
+import { useAuth } from '../context/AuthContext';
+import { apiService } from '../services/api';
 
 const methods = [
   { id: 'paytm', name: 'Paytm', icon: Smartphone, color: 'bg-blue-500' },
@@ -12,13 +14,40 @@ const methods = [
 ];
 
 export const Withdraw = () => {
+  const { user, refreshUser } = useAuth();
   const [selected, setSelected] = React.useState('paytm');
   const [loading, setLoading] = React.useState(false);
+  const [details, setDetails] = React.useState('');
+  const [amount, setAmount] = React.useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const withdrawAmount = parseInt(amount);
+    if (user && user.coins < withdrawAmount) {
+      alert("Insufficient balance");
+      return;
+    }
+    if (withdrawAmount < 5) { // Assuming coins value is higher, but demo check
+       // Using small number for testing if needed, but keeping user limit
+    }
+    if (withdrawAmount < 50000) {
+      alert("Minimum withdrawal is 50,000 coins");
+      return;
+    }
+
     setLoading(true);
-    setTimeout(() => setLoading(false), 2000);
+    try {
+      const data = await apiService.withdraw(withdrawAmount, selected, details);
+      if (data.error) throw new Error(data.error);
+      alert("Withdrawal submitted successfully!");
+      setAmount('');
+      setDetails('');
+      await refreshUser();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -35,9 +64,9 @@ export const Withdraw = () => {
             <p className="text-xs text-white/40 font-bold uppercase mb-1">Withdrawable Balance</p>
             <div className="flex items-center gap-2">
               <CoinIcon size={24} />
-              <h2 className="text-3xl font-display font-black text-white">4,027</h2>
+              <h2 className="text-3xl font-display font-black text-white">{user?.coins.toLocaleString() || '0'}</h2>
             </div>
-            <p className="text-[10px] text-gaming-accent font-bold mt-1">≈ $4.02 USD</p>
+            <p className="text-[10px] text-gaming-accent font-bold mt-1">≈ ${(user?.coins ? (user.coins / 10000).toFixed(2) : '0.00')} USD</p>
           </div>
           <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
              <Wallet className="w-8 h-8 text-white/20" />
@@ -75,6 +104,8 @@ export const Withdraw = () => {
             <input 
                 type="text" 
                 placeholder={`Enter ${selected === 'paytm' ? 'Paytm' : selected === 'phonepe' ? 'PhonePe' : 'PayPal'} Number...`}
+                value={details}
+                onChange={(e) => setDetails(e.target.value)}
                 className="w-full bg-blue-800/40 border border-white/20 rounded-2xl py-5 px-6 font-bold text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors"
                 required
             />
@@ -83,11 +114,13 @@ export const Withdraw = () => {
             <input 
                 type="number" 
                 placeholder="50,000"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
                 className="w-full bg-blue-800/40 border border-white/20 rounded-2xl py-5 px-6 font-bold text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors"
                 required
             />
             <p className="text-[10px] text-white/50 text-center font-bold mt-2">
-              *To withdraw you must have 100,000 in your balance
+              *Minimum withdrawal is 50,000 coins ($5 USD)
             </p>
         </div>
 

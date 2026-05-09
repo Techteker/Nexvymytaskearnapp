@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { TopBar } from '../components/TopBar';
 import { CoinIcon } from '../components/CoinIcon';
 import { Users, Copy, Share2, TrendingUp, DollarSign, Clock, CheckCircle2, ShieldCheck, Mail, Info } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const stats = [
   { label: 'Invited Users', value: '42', icon: Users, color: 'bg-blue-500' },
@@ -18,13 +19,36 @@ const referrals = [
 ];
 
 export const Referral = () => {
+  const { refreshUser } = useAuth();
   const [copied, setCopied] = React.useState(false);
+  const [referralInput, setReferralInput] = React.useState('');
   const referralCode = "NEXVY999X";
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(referralCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleClaimReferral = async () => {
+    if (!referralInput) return;
+    try {
+      const res = await fetch('/api/user/referral', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ code: referralInput }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      alert(`Referral claimed! Reward: ${data.reward} coins`);
+      await refreshUser();
+      setReferralInput('');
+    } catch (err: any) {
+      alert(err.message);
+    }
   };
 
   return (
@@ -47,9 +71,9 @@ export const Referral = () => {
 
       {/* Referral Code Section */}
       <div className="gaming-card p-6 flex flex-col items-center gap-6 border-white/10 bg-blue-900/40">
-        <div className="text-center">
+        <div className="text-center w-full">
             <h3 className="text-sm font-black uppercase text-white/50 tracking-widest">Your Private Code</h3>
-            <div className="flex items-center gap-4 mt-4">
+            <div className="flex items-center gap-4 mt-4 justify-center">
                 <div className="bg-blue-950/80 border-2 border-dashed border-gaming-accent p-4 rounded-2xl flex items-center justify-center min-w-[180px] shadow-inner relative group cursor-pointer" onClick={copyToClipboard}>
                     <span className="text-2xl font-display font-black tracking-[4px] text-white">{referralCode}</span>
                     <div className={ `absolute -top-3 right-0 px-2 py-1 rounded-full text-[8px] font-black uppercase shadow-lg transition-all ${copied ? 'bg-green-500 scale-100' : 'bg-gaming-accent scale-0'}`}>
@@ -61,6 +85,27 @@ export const Referral = () => {
                 </button>
             </div>
         </div>
+
+        {/* Claim Referral Input */}
+        <div className="w-full pt-6 border-t border-white/5 flex flex-col gap-3">
+          <h3 className="text-xs font-black uppercase text-white/40 tracking-widest text-center">Enter Inviter Code</h3>
+          <div className="flex gap-2">
+            <input 
+              type="text" 
+              placeholder="ENTER CODE..."
+              value={referralInput}
+              onChange={(e) => setReferralInput(e.target.value.toUpperCase())}
+              className="flex-1 bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-xs font-black text-white focus:border-gaming-accent outline-none"
+            />
+            <button 
+              onClick={handleClaimReferral}
+              className="bg-gaming-accent px-6 py-3 rounded-xl text-xs font-black uppercase text-white"
+            >
+              Claim
+            </button>
+          </div>
+        </div>
+
         <div className="flex items-center gap-3 bg-blue-500/10 p-4 rounded-2xl border border-blue-500/20 w-full">
             <ShieldCheck className="w-6 h-6 text-gaming-accent shrink-0" />
             <p className="text-[10px] text-blue-200 font-bold leading-tight">Anti-Fraud Protection Enabled. Commissions are calculated instantly after task verification.</p>

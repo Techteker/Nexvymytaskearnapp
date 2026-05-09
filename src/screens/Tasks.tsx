@@ -1,13 +1,45 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { TopBar } from '../components/TopBar';
-import { Search, Filter, AppWindow, PlayCircle, FileText, CheckCircle2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Filter, AppWindow, PlayCircle, FileText, CheckCircle2, HelpCircle } from 'lucide-react';
 import { CoinIcon } from '../components/CoinIcon';
+
+import { apiService } from '../services/api';
 
 const categories = ['All', 'Surveys', 'App Install', 'Games', 'Quiz'];
 
+const iconMap: Record<string, any> = {
+  'Surveys': FileText,
+  'App Install': AppWindow,
+  'Ads': PlayCircle,
+  'Quiz': HelpCircle,
+  'All': CheckCircle2
+};
+
 export const Tasks = () => {
   const [activeTab, setActiveTab] = React.useState('All');
+  const [tasks, setTasks] = React.useState<any[]>([]);
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    apiService.getTasks().then(setTasks);
+  }, []);
+
+  const handleStartTask = (task: any) => {
+    if (task.category === 'Quiz') {
+      navigate('/quizzes');
+    } else if (['Surveys', 'App Install', 'Games', 'Quiz'].includes(task.category)) {
+      navigate(`/task/${task.id}`);
+    } else {
+      // Direct action for ads or simple tasks
+      alert('Task Started!');
+    }
+  };
+
+  const filteredTasks = activeTab === 'All' 
+    ? tasks 
+    : tasks.filter(t => t.category === activeTab);
 
   return (
     <motion.div
@@ -18,7 +50,7 @@ export const Tasks = () => {
       <TopBar />
 
       <div className="flex flex-col gap-4">
-        <h2 className="text-2xl font-display font-extrabold">Available Tasks</h2>
+        <h2 className="text-2xl font-display font-black italic tracking-tighter text-white">EARN COINS</h2>
         
         {/* Search & Filter */}
         <div className="flex gap-2">
@@ -27,7 +59,7 @@ export const Tasks = () => {
             <input 
               type="text" 
               placeholder="Search tasks..." 
-              className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:border-gaming-accent transition-colors"
+              className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-10 pr-4 text-sm font-bold focus:outline-none focus:border-gaming-accent transition-colors"
             />
           </div>
           <button className="bg-white/5 border border-white/10 rounded-2xl p-3">
@@ -41,9 +73,9 @@ export const Tasks = () => {
             <button
               key={cat}
               onClick={() => setActiveTab(cat)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all whitespace-nowrap ${
                 activeTab === cat 
-                ? 'bg-gaming-accent glow-blue' 
+                ? 'bg-gaming-accent glow-blue text-white' 
                 : 'bg-white/5 text-white/40 border border-white/10'
               }`}
             >
@@ -53,52 +85,42 @@ export const Tasks = () => {
         </div>
       </div>
 
-      {/* Task List */}
-      <div className="flex flex-col gap-4">
-        {[
-          { icon: FileText, title: 'Finance Survey', reward: 150, time: '3m', diff: 'Easy' },
-          { icon: AppWindow, title: 'Install Nexo App', reward: 1200, time: '5m', diff: 'Med' },
-          { icon: PlayCircle, title: 'Watch 5 Video Ads', reward: 50, time: '2m', diff: 'Instant' },
-          { icon: CheckCircle2, title: 'Daily Check-in', reward: 20, time: '1m', diff: 'Easy' },
-        ].map((task, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            className="gaming-card p-5 group hover:bg-white/10 transition-all cursor-pointer"
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-gaming-accent/20 to-blue-500/10 flex items-center justify-center border border-white/10">
-                  <task.icon className="w-7 h-7 text-gaming-accent" />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <h4 className="font-bold text-white">{task.title}</h4>
-                  <div className="flex gap-2 items-center">
-                    <span className="text-[10px] text-white/40 font-bold uppercase tracking-tighter bg-white/5 px-2 py-0.5 rounded">
-                      {task.diff}
-                    </span>
-                    <span className="text-[10px] text-white/40 font-bold">{task.time}</span>
-                  </div>
-                </div>
+      {/* Task Grid */}
+      <div className="grid grid-cols-2 gap-4">
+        {filteredTasks.length === 0 && <div className="col-span-2 text-center text-white/20 font-bold py-10 uppercase text-xs tracking-widest">No tasks found in this category</div>}
+        {filteredTasks.map((task, i) => {
+          const TaskIcon = iconMap[task.category] || iconMap['All'];
+          return (
+            <motion.div
+              key={task.id}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: i * 0.05 }}
+              className="gaming-card p-4 flex flex-col items-center text-center gap-3 group hover:bg-blue-700/20 transition-all cursor-pointer"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gaming-accent/20 to-blue-500/10 flex items-center justify-center border border-white/10 shadow-inner group-hover:border-gaming-accent/30 transition-all">
+                <TaskIcon className="w-8 h-8 text-gaming-accent" />
               </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10">
+              
+              <div className="flex flex-col gap-1 min-h-[40px] justify-center">
+                <h4 className="font-black text-xs text-white leading-tight">{task.title}</h4>
+                <p className="text-[9px] text-white/40 font-bold uppercase tracking-tighter">{task.category}</p>
+              </div>
+
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 w-full justify-center">
                 <CoinIcon size={14} />
-                <span className="font-display font-bold text-coin-gold">{task.reward}</span>
+                <span className="font-display font-bold text-sm text-white">{task.reward}</span>
               </div>
-            </div>
-            
-            <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
-              <div className="flex-1 max-w-[120px] h-1.5 bg-white/5 rounded-full overflow-hidden">
-                <div className="w-1/3 h-full bg-gaming-accent glow-blue" />
-              </div>
-              <button className="bg-gaming-accent/10 text-gaming-accent hover:bg-gaming-accent hover:text-white px-6 py-2 rounded-xl text-xs font-extrabold transition-all">
+              
+              <button 
+                onClick={() => handleStartTask(task)}
+                className="w-full py-2 bg-gaming-accent text-white text-[10px] font-black uppercase rounded-lg shadow-lg glow-blue hover:scale-105 transition-transform"
+              >
                 START
               </button>
-            </div>
-          </motion.div>
-        ))}
+            </motion.div>
+          );
+        })}
       </div>
     </motion.div>
   );

@@ -1,0 +1,134 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 0. Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Global Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isEmailVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // --- Entity Validations ---
+    function isValidUser(data) {
+      return data.keys().hasAll(['email', 'username', 'coins', 'level']) &&
+             data.email is string && data.email.size() <= 256 &&
+             data.username is string && data.username.size() <= 100 &&
+             data.coins is number && data.level is number;
+    }
+
+    function isValidTask(data) {
+      return data.keys().hasAll(['title', 'category', 'rewardCoins']) &&
+             data.title is string && data.title.size() <= 200 &&
+             data.rewardCoins is number && data.rewardCoins >= 0;
+    }
+
+    function isValidSubmission(data) {
+      return data.keys().hasAll(['userId', 'taskId', 'status']) &&
+             data.userId == request.auth.uid &&
+             data.status == 'pending';
+    }
+
+    // --- Collection Routes ---
+
+    // USERS COLLECTION
+    match /users/{userId} {
+      allow get: if isSignedIn() && (isOwner(userId) || isAdmin());
+      allow list: if isAdmin(); // Users cannot list other users
+      
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      
+      allow update: if (
+        isAdmin() || 
+        (isOwner(userId) && 
+         incoming().diff(existing()).affectedKeys().hasOnly(['username', 'photoURL', 'lastLoginAt', 'deviceInfo']))
+      );
+    }
+
+    // ADMINS COLLECTION
+    match /admins/{adminId} {
+      allow read: if isAdmin();
+      // Only allow the super admin document to be created/updated if email matches exactly
+      allow create, update: if isSignedIn() && request.auth.token.email == 'ranarajendar930@gmail.com' && incoming().email == 'ranarajendar930@gmail.com';
+      allow delete: if false;
+    }
+
+    // LOGS COLLECTION
+    match /logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin(); // Admins can create logs during actions
+      allow update, delete: if false;
+    }
+
+    // TASKS COLLECTION
+    match /tasks/{taskId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() && isValidTask(incoming());
+    }
+
+    // QUIZ COLLECTION
+    match /quiz/{quizId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // SUBMISSIONS COLLECTION
+    match /submissions/{subId} {
+      allow get: if isSignedIn() && (isOwner(existing().userId) || isAdmin());
+      allow list: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      
+      allow create: if isSignedIn() && isValidSubmission(incoming());
+      
+      allow update: if isAdmin() && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['status', 'rejectionReason', 'reviewedAt'])
+      );
+      
+      allow delete: if isAdmin();
+    }
+
+    // WITHDRAWALS COLLECTION
+    match /withdrawals/{wId} {
+      allow get: if isSignedIn() && (isOwner(existing().userId) || isAdmin());
+      allow list: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid && incoming().status == 'pending';
+      
+      allow update: if isAdmin() && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['status', 'processedAt'])
+      );
+    }
+
+    // SETTINGS COLLECTION
+    match /settings/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+  }
+}

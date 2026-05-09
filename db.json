@@ -1,0 +1,114 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "username": "Guest User",
+      "email": "user@gmail.com",
+      "coins": 4027,
+      "level": 12,
+      "joinedAt": "2024-05-08T00:00:00Z"
+    }
+  ],
+  "leaderboard": [
+    {
+      "rank": 1,
+      "name": "DragonSlayer",
+      "coins": 142050,
+      "level": 45,
+      "status": "online",
+      "change": "up"
+    },
+    {
+      "rank": 2,
+      "name": "Alice_Wonder",
+      "coins": 128400,
+      "level": 42,
+      "status": "online",
+      "change": "down"
+    },
+    {
+      "rank": 3,
+      "name": "CyberKnight",
+      "coins": 115200,
+      "level": 38,
+      "status": "offline",
+      "change": "none"
+    },
+    {
+      "rank": 4,
+      "name": "Guest User",
+      "coins": 4027,
+      "level": 12,
+      "status": "online",
+      "change": "up",
+      "isSelf": true
+    },
+    {
+      "rank": 5,
+      "name": "NightOwl",
+      "coins": 87200,
+      "level": 33,
+      "status": "online",
+      "change": "up"
+    },
+    {
+      "rank": 6,
+      "name": "ShadowBoxer",
+      "coins": 76500,
+      "level": 31,
+      "status": "offline",
+      "change": "down"
+    },
+    {
+      "rank": 7,
+      "name": "GoldDigger",
+      "coins": 65400,
+      "level": 29,
+      "status": "online",
+      "change": "none"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "1",
+      "category": "Surveys",
+      "title": "Finance Survey",
+      "reward": 150,
+      "time": "3m",
+      "diff": "Easy"
+    },
+    {
+      "id": "2",
+      "category": "App Install",
+      "title": "Install Nexo App",
+      "reward": 1200,
+      "time": "5m",
+      "diff": "Med"
+    },
+    {
+      "id": "3",
+      "category": "Ads",
+      "title": "Watch 5 Video Ads",
+      "reward": 50,
+      "time": "2m",
+      "diff": "Instant"
+    },
+    {
+      "id": "4",
+      "category": "Quiz",
+      "title": "Gaming Quiz Challenge",
+      "reward": 200,
+      "time": "4m",
+      "diff": "Easy"
+    },
+    {
+      "id": "5",
+      "category": "All",
+      "title": "Daily Check-in",
+      "reward": 20,
+      "time": "1m",
+      "diff": "Easy"
+    }
+  ],
+  "submissions": []
+}

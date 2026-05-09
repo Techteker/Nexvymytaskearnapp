@@ -15,13 +15,34 @@ const DAYS = [
 ];
 
 export const DailyGift = () => {
-  const claim = () => {
-    confetti({
-      particleCount: 150,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#fbbf24', '#ffffff']
-    });
+  const [loading, setLoading] = React.useState(false);
+
+  const claim = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/user/daily-gift', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Claim failed');
+
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#fbbf24', '#ffffff']
+      });
+      alert(`Claimed ${data.reward} coins!`);
+      window.location.reload();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

@@ -5,43 +5,93 @@ import { CoinIcon } from '../components/CoinIcon';
 import confetti from 'canvas-confetti';
 import { useNavigate } from 'react-router-dom';
 import { History, Volume2, Info, Users } from 'lucide-react';
+import { cn } from '../lib/utils';
+import { useAuth } from '../context/AuthContext';
 
 const SECTIONS = [
-  { value: '5x', color: '#3b82f6' },
-  { value: '0x', color: '#ef4444' },
-  { value: '1x', color: '#10b981' },
-  { value: '2x', color: '#fbbf24' },
-  { value: '3x', color: '#8b5cf6' },
-  { value: '4x', color: '#ec4899' },
+  { value: '5x', color: '#3b82f6', prob: 0.01 },
+  { value: '0x', color: '#ef4444', prob: 0.40 },
+  { value: '1x', color: '#10b981', prob: 0.30 },
+  { value: '2x', color: '#fbbf24', prob: 0.05 },
+  { value: '3x', color: '#8b5cf6', prob: 0.02 },
+  { value: '4x', color: '#ec4899', prob: 0.02 },
 ];
+
+import { apiService } from '../services/api.ts';
+
+const MULTIPLIER_TO_INDEX: { [key: number]: number } = {
+  5: 0,
+  0: 1,
+  1: 2,
+  2: 3,
+  3: 4,
+  4: 5
+};
 
 export const Spinner = () => {
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
   const controls = useAnimation();
   const [spinning, setSpinning] = React.useState(false);
   const [result, setResult] = React.useState<string | null>(null);
+  const [selectedPack, setSelectedPack] = React.useState(0);
+
+  const packs = [
+    { coins: 20, color: 'bg-red-500' },
+    { coins: 50, color: 'bg-orange-500' },
+    { coins: 100, color: 'bg-blue-500' },
+    { coins: 500, color: 'bg-pink-600' },
+  ];
 
   const spin = async () => {
     if (spinning) return;
+    
     setSpinning(true);
     setResult(null);
 
-    const extraSpins = 5 + Math.random() * 5;
-    const finalRotation = extraSpins * 360 + Math.random() * 360;
+    try {
+      const data = await apiService.spin(packs[selectedPack].coins);
+      if (data.error) {
+        alert(data.error);
+        setSpinning(false);
+        return;
+      }
 
-    await controls.start({
-      rotate: finalRotation,
-      transition: { duration: 4, ease: [0.45, 0.05, 0.55, 0.95] }
-    });
+      const { multiplier, win } = data;
+      const winningIndex = MULTIPLIER_TO_INDEX[multiplier];
 
-    setSpinning(false);
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#fbbf24', '#3b82f6', '#ffffff']
-    });
-    setResult('2x WIN!');
+      // Calculation to land on the slice
+      const sliceAngle = 60;
+      const targetRotation = 360 - (winningIndex * sliceAngle);
+      const extraSpins = 5 + Math.random() * 5;
+      const finalRotation = (extraSpins * 360) + targetRotation;
+
+      await controls.start({
+        rotate: finalRotation,
+        transition: { duration: 4, ease: [0.45, 0.05, 0.55, 0.95] }
+      });
+
+      setSpinning(false);
+      
+      if (multiplier > 0) {
+        confetti({
+          particleCount: 150,
+          spread: 100,
+          origin: { y: 0.6 },
+          colors: ['#fbbf24', '#3b82f6', '#ffffff']
+        });
+        setResult(`${multiplier}x WIN! (+${win})`);
+        
+        await refreshUser(); // Added to refresh balance
+      } else {
+        setResult('BETTER LUCK NEXT TIME!');
+        await refreshUser(); // Added to refresh balance
+      }
+    } catch (error) {
+      console.error(error);
+      setSpinning(false);
+      setResult('NETWORK ERROR');
+    }
   };
 
   return (
@@ -52,50 +102,50 @@ export const Spinner = () => {
     >
       <TopBar />
 
-      <div className="flex flex-col items-center gap-1 mb-4">
+      <div className="flex flex-col items-center gap-1 mb-2">
         <h1 className="text-4xl font-display font-black text-white text-center italic tracking-tighter drop-shadow-xl flex flex-col leading-none">
           <span className="text-orange-400 text-lg not-italic">COIN</span>
           <span>KING</span>
         </h1>
       </div>
 
-      <div className="relative flex justify-center py-4">
+      <div className="relative flex justify-center py-2">
         {/* Floating Controls */}
-        <div className="absolute left-0 top-0 flex flex-col gap-4">
+        <div className="absolute left-0 top-0 flex flex-col gap-3">
            <button className="flex flex-col items-center group">
-              <div className="p-3 bg-blue-700/50 rounded-2xl border-2 border-white/20 group-active:scale-90 transition-transform">
-                <Volume2 className="w-6 h-6" />
+              <div className="p-2.5 bg-blue-700/50 rounded-xl border-2 border-white/10 group-active:scale-90 transition-transform">
+                <Volume2 className="w-5 h-5" />
               </div>
-              <span className="text-[10px] font-black uppercase mt-1">Music</span>
+              <span className="text-[8px] font-black uppercase mt-1">Sound</span>
            </button>
            <button className="flex flex-col items-center group">
-              <div className="p-3 bg-blue-700/50 rounded-2xl border-2 border-white/20 group-active:scale-90 transition-transform">
-                <History className="w-6 h-6" />
+              <div className="p-2.5 bg-blue-700/50 rounded-xl border-2 border-white/10 group-active:scale-90 transition-transform">
+                <History className="w-5 h-5" />
               </div>
-              <span className="text-[10px] font-black uppercase mt-1">Rate Us</span>
+              <span className="text-[8px] font-black uppercase mt-1">History</span>
            </button>
         </div>
 
-        <div className="absolute right-0 top-0 flex flex-col gap-4 text-right">
+        <div className="absolute right-0 top-0 flex flex-col gap-3 text-right">
            <button 
              onClick={() => navigate('/referral')}
              className="flex flex-col items-center group"
            >
-              <div className="p-3 bg-blue-700/50 rounded-2xl border-2 border-white/20 group-active:scale-90 transition-transform">
-                <Users className="w-6 h-6" />
+              <div className="p-2.5 bg-blue-700/50 rounded-xl border-2 border-white/10 group-active:scale-90 transition-transform">
+                <Users className="w-5 h-5" />
               </div>
-              <span className="text-[10px] font-black uppercase mt-1">Invite</span>
+              <span className="text-[8px] font-black uppercase mt-1">Invite</span>
            </button>
            <button className="flex flex-col items-center group">
-              <div className="p-3 bg-blue-700/50 rounded-2xl border-2 border-white/20 group-active:scale-90 transition-transform">
-                <Info className="w-6 h-6" />
+              <div className="p-2.5 bg-blue-700/50 rounded-xl border-2 border-white/10 group-active:scale-90 transition-transform">
+                <Info className="w-5 h-5" />
               </div>
-              <span className="text-[10px] font-black uppercase mt-1">Privacy</span>
+              <span className="text-[8px] font-black uppercase mt-1">Info</span>
            </button>
         </div>
 
         {/* Wheel */}
-        <div className="relative w-[280px] h-[280px] rounded-full border-[10px] border-orange-500 glow-blue z-10 shadow-2xl overflow-hidden ring-8 ring-gaming-blue-700/50">
+        <div className="relative w-[260px] h-[260px] rounded-full border-[10px] border-orange-500 glow-blue z-10 shadow-2xl overflow-hidden ring-8 ring-gaming-blue-700/50">
           <motion.div
             animate={controls}
             className="w-full h-full relative"
@@ -123,52 +173,72 @@ export const Spinner = () => {
             ))}
           </motion.div>
 
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 bg-white rounded-full z-20 flex items-center justify-center border-4 border-orange-600 shadow-xl">
-             <div className="w-6 h-6 bg-gradient-to-br from-yellow-300 to-orange-500 rounded-md rotate-45" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-full z-20 flex items-center justify-center border-4 border-orange-600 shadow-xl">
+             <div className="w-5 h-5 bg-gradient-to-br from-yellow-300 to-orange-500 rounded-md rotate-45" />
           </div>
         </div>
 
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-10 bg-orange-400 z-30 pointer-events-none drop-shadow-xl" 
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-8 bg-orange-400 z-30 pointer-events-none drop-shadow-xl" 
              style={{ clipPath: 'polygon(0% 0%, 100% 0%, 50% 100%)' }} />
       </div>
 
       <div className="flex flex-col gap-4">
-        {/* Spin Packs */}
-        <div className="grid grid-cols-4 gap-2">
-           {[
-             { spins: 5, coins: 20, color: 'bg-red-500' },
-             { spins: 5, coins: 50, color: 'bg-orange-500' },
-             { spins: 5, coins: 100, color: 'bg-blue-500' },
-             { spins: 5, coins: 500, color: 'bg-pink-600' },
-           ].map((pack, i) => (
-             <div key={i} className="gaming-card p-1.5 flex flex-col items-center gap-1 border-white/10 bg-white/5">
-                <span className="text-[8px] font-black text-white/60">Spins: {pack.spins}</span>
-                <div className={`w-8 h-8 rounded-full ${pack.color} border-2 border-dashed border-white/40 flex items-center justify-center`}>
-                   <div className="w-4 h-4 bg-white/20 rounded-full" />
-                </div>
-                <span className="text-[10px] font-black">₹{pack.coins}</span>
-             </div>
-           ))}
+        {/* Entry Fee Section */}
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between px-2">
+            <span className="text-[10px] font-black uppercase text-white/40 tracking-wider">Select Entry Fee</span>
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] font-bold text-gaming-accent">Win up to</span>
+              <span className="text-[10px] font-black text-white bg-blue-600 px-2 py-0.5 rounded italic">5X</span>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-4 gap-3">
+             {packs.map((pack, i) => (
+               <button 
+                  key={i} 
+                  onClick={() => setSelectedPack(i)}
+                  className={cn(
+                    "gaming-card p-3 flex flex-col items-center gap-2 transition-all border-2 relative overflow-hidden",
+                    selectedPack === i 
+                      ? "bg-gaming-accent border-white shadow-[0_0_20px_rgba(59,130,246,0.6)] scale-105" 
+                      : "bg-blue-900/40 border-white/5 opacity-60 grayscale-[0.5]"
+                  )}
+               >
+                  <div className={`w-10 h-10 rounded-xl ${pack.color} border-2 border-white/20 flex items-center justify-center shadow-lg`}>
+                     <CoinIcon size={20} />
+                  </div>
+                  <span className="text-sm font-black text-white">₹{pack.coins}</span>
+                  {selectedPack === i && (
+                    <motion.div layoutId="selector" className="absolute inset-0 bg-white/10" />
+                  )}
+               </button>
+             ))}
+          </div>
         </div>
 
         <button
           onClick={spin}
           disabled={spinning}
-          className="gaming-button-yellow w-full py-5 text-2xl tracking-tight"
+          className="gaming-button-yellow w-full py-5 text-2xl tracking-tighter font-black shadow-[0_8px_0_rgb(180,83,9)] active:shadow-none active:translate-y-[4px] transition-all"
         >
-          {spinning ? 'SPINNING...' : 'SPIN NOW'}
+          {spinning ? 'SPINNING...' : `SPIN FOR ₹${packs[selectedPack].coins}`}
         </button>
       </div>
 
+      <div className="min-h-[40px]">
         {result && (
           <motion.div
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="text-center font-display font-black text-4xl text-coin-gold text-glow"
+            initial={{ scale: 0.5, opacity: 0, y: 10 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            className={`text-center font-display font-black text-3xl italic tracking-tight drop-shadow-xl ${
+              result.includes('TRY AGAIN') ? 'text-red-400' : 'text-coin-gold text-glow'
+            }`}
           >
             {result}
           </motion.div>
         )}
+      </div>
 
       {/* Info Card */}
       <div className="gaming-card p-4 flex gap-3 items-center bg-blue-500/10 border-blue-500/20">

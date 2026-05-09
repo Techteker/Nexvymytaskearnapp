@@ -1,0 +1,133 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "App user profile information.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "coins": { "type": "number" },
+        "level": { "type": "number" },
+        "referralCode": { "type": "string" },
+        "referredBy": { "type": "string" },
+        "isBanned": { "type": "boolean" },
+        "deviceInfo": { "type": "object" },
+        "ipAddress": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "lastLoginAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "email", "coins"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Admin users with panel access.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["super_admin", "admin"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "role"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "Earning tasks for users.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "rewardCoins": { "type": "number" },
+        "link": { "type": "string" },
+        "instructions": { "type": "string" },
+        "difficulty": { "type": "string" },
+        "expiryDate": { "type": "string", "format": "date" },
+        "status": { "type": "string", "enum": ["active", "inactive"] },
+        "imageUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "category", "rewardCoins"]
+    },
+    "Quiz": {
+      "title": "Quiz",
+      "description": "Games or AI generated quizzes.",
+      "type": "object",
+      "properties": {
+        "topic": { "type": "string" },
+        "difficulty": { "type": "string" },
+        "questions": { "type": "array" },
+        "rewardCoins": { "type": "number" },
+        "timer": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["topic", "questions"]
+    },
+    "Submission": {
+      "title": "Submission",
+      "description": "User task completion proofs.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "taskId": { "type": "string" },
+        "screenshotUrl": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "under_review", "approved", "rejected"] },
+        "rejectionReason": { "type": "string" },
+        "submittedAt": { "type": "string", "format": "date-time" },
+        "reviewedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "taskId", "status"]
+    },
+    "Withdrawal": {
+      "title": "Withdrawal",
+      "description": "User payment requests.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "amount": { "type": "number" },
+        "method": { "type": "string" },
+        "paymentDetails": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "processing", "successful", "rejected"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "amount", "status"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "Global app configurations.",
+      "type": "object",
+      "properties": {
+        "maintenanceMode": { "type": "boolean" },
+        "minWithdrawal": { "type": "number" },
+        "referralCommission": { "type": "number" },
+        "dailyReward": { "type": "number" },
+        "appName": { "type": "string" },
+        "appLogo": { "type": "string" }
+      }
+    },
+    "Log": {
+      "title": "Log",
+      "description": "Admin activity history",
+      "type": "object",
+      "properties": {
+        "adminId": { "type": "string" },
+        "action": { "type": "string" },
+        "details": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["adminId", "action", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users": { "schema": "User", "description": "User profiles" },
+    "/admins": { "schema": "Admin", "description": "Admin roles" },
+    "/tasks": { "schema": "Task", "description": "Earning tasks" },
+    "/quiz": { "schema": "Quiz", "description": "Quiz content" },
+    "/submissions": { "schema": "Submission", "description": "Task submissions" },
+    "/withdrawals": { "schema": "Withdrawal", "description": "Payment requests" },
+    "/settings": { "schema": "Settings", "description": "App settings" },
+    "/logs": { "schema": "Log", "description": "Activity logs" }
+  }
+}
