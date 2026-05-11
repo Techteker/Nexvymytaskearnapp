@@ -5,6 +5,7 @@ import { CoinIcon } from '../components/CoinIcon';
 import { Gift, Lock, Check } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 const DAYS = [
   { day: 1, reward: 100, status: 'claimed' },
@@ -17,6 +18,7 @@ const DAYS = [
 
 export const DailyGift = () => {
   const { refreshUser } = useAuth();
+  const { showToast } = useToast();
   const [loading, setLoading] = React.useState(false);
   const [status, setStatus] = React.useState({
     streak: 0,
@@ -24,16 +26,22 @@ export const DailyGift = () => {
     lastClaim: null
   });
 
+  const fetchStatus = async () => {
+    try {
+      const res = await fetch('/api/user/daily-gift/status', {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      const data = await res.json();
+      setStatus(data);
+    } catch (e) {}
+  };
+
   React.useEffect(() => {
-    fetch('/api/user/daily-gift/status', {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-    })
-    .then(res => res.json())
-    .then(setStatus);
+    fetchStatus();
   }, []);
 
   const claim = async () => {
-    if (!status.isClaimable) return alert('You already claimed today!');
+    if (!status.isClaimable) return showToast('You already claimed today!', 'error');
     setLoading(true);
     try {
       const res = await fetch('/api/user/daily-gift', {
@@ -52,11 +60,11 @@ export const DailyGift = () => {
         origin: { y: 0.6 },
         colors: ['#fbbf24', '#ffffff']
       });
-      alert(`Claimed ${data.reward} coins!`);
+      showToast(`Claimed ${data.reward} coins!`, 'success');
       await refreshUser();
-      window.location.reload();
+      await fetchStatus();
     } catch (err: any) {
-      alert(err.message);
+      showToast(err.message, 'error');
     } finally {
       setLoading(false);
     }

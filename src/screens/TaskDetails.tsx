@@ -5,11 +5,13 @@ import { TopBar } from '../components/TopBar';
 import { ArrowLeft, Clock, Shield, Upload, CheckCircle2, AlertCircle, User, Mail } from 'lucide-react';
 import { apiService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 export const TaskDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { refreshUser, user } = useAuth();
+  const { showToast } = useToast();
   const [task, setTask] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
   const [submitting, setSubmitting] = React.useState(false);
@@ -105,7 +107,7 @@ export const TaskDetails = () => {
               <li>Open the task using the "Start Task" button below.</li>
               <li>Complete the requirement correctly.</li>
               <li>Take a clearly readable screenshot of completion.</li>
-              <li>Upload it below to receive your {task?.reward} coins instantly (for demo).</li>
+              <li>Upload it below to receive your {task?.reward} coins instantly.</li>
             </ul>
           </div>
 

@@ -40,8 +40,6 @@ export const Home = () => {
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col gap-6"
       >
-        <TopBar />
-
         {/* Stats Dashboard */}
         <div className="grid grid-cols-3 gap-3">
           <StatCard 

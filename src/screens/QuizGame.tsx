@@ -7,26 +7,40 @@ import { Timer, CheckCircle2, XCircle, ChevronRight, Trophy } from 'lucide-react
 import confetti from 'canvas-confetti';
 
 import { apiService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { aiService, QuizQuestion } from '../services/aiService';
 
 export const QuizGame = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { refreshUser } = useAuth();
+  const { showToast } = useToast();
   
-  const [questions, setQuestions] = React.useState<QuizQuestion[]>([]);
+  const [quizData, setQuizData] = React.useState<any>(null);
+  const [questions, setQuestions] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [currentQuestion, setCurrentQuestion] = React.useState(0);
   const [selectedOption, setSelectedOption] = React.useState<number | null>(null);
   const [score, setScore] = React.useState(0);
   const [showResult, setShowResult] = React.useState(false);
   const [isAnswering, setIsAnswering] = React.useState(false);
+  const [answers, setAnswers] = React.useState<any[]>([]);
 
   React.useEffect(() => {
     const loadQuiz = async () => {
       setLoading(true);
       try {
-        const generated = await aiService.generateQuiz(id || 'General Knowledge');
-        setQuestions(generated);
+        const allQuizzes = await apiService.getQuizzes();
+        const found = allQuizzes.find((q: any) => q.id === id);
+        if (found) {
+          setQuizData(found);
+          setQuestions(found.questions || []);
+        } else {
+           // Fallback to AI generation if not found in pre-defined set
+           const generated = await aiService.generateQuiz(id || 'General Knowledge');
+           setQuestions(generated);
+        }
       } catch (e) {
         console.error(e);
       } finally {
@@ -40,13 +54,18 @@ export const QuizGame = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
         <div className="w-16 h-16 border-4 border-gaming-accent border-t-transparent rounded-full animate-spin" />
-        <p className="text-white/60 font-black uppercase tracking-widest animate-pulse">AI is generating your quiz...</p>
+        <p className="text-white/60 font-black uppercase tracking-widest animate-pulse">Loading brain challenge...</p>
       </div>
     );
   }
 
   if (questions.length === 0) {
-    return <div className="text-center p-10 text-white">Failed to load quiz. Please try again.</div>;
+    return (
+      <div className="text-center p-10 flex flex-col items-center gap-4">
+        <p className="text-white">This quiz is currently unavailable.</p>
+        <button onClick={() => navigate('/quizzes')} className="gaming-button-yellow px-6 py-2">Go Back</button>
+      </div>
+    );
   }
 
   const totalQuestions = questions.length;
@@ -57,8 +76,10 @@ export const QuizGame = () => {
     setSelectedOption(index);
     setIsAnswering(true);
 
-    const isCorrect = index === question.correct;
+    const isCorrect = index === (question.answer !== undefined ? question.answer : question.correct);
     if (isCorrect) setScore(s => s + 1);
+    
+    setAnswers([...answers, { question: question.question, selected: index, correct: (question.answer !== undefined ? question.answer : question.correct) }]);
 
     setTimeout(() => {
       if (currentQuestion < totalQuestions - 1) {
@@ -76,24 +97,19 @@ export const QuizGame = () => {
           });
         }
       }
-    }, 1500);
+    }, 1200);
   };
 
   const collectReward = async () => {
     try {
-      const res = await fetch('/api/user/quiz/complete', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({ score, total: totalQuestions }),
-      });
-      if (!res.ok) throw new Error('Claim failed');
+      const finalScore = Math.round((score / totalQuestions) * 100);
+      const res = await apiService.submitQuiz(id || 'unknown', finalScore, answers);
+      if (res.error) throw new Error(res.error);
+      
+      showToast(res.reward > 0 ? `Congratulations! You earned ${res.reward} coins!` : res.message || 'Quiz completed!', 'success');
       navigate('/quizzes');
-      window.location.reload();
-    } catch (err) {
-      alert('Error claiming reward');
+    } catch (err: any) {
+      showToast(err.message || 'Error claiming reward', 'error');
       navigate('/quizzes');
     }
   };
@@ -143,8 +159,6 @@ export const QuizGame = () => {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-6">
-      <TopBar />
-
       <div className="flex items-center justify-between gap-4">
         <button onClick={() => navigate('/quizzes')} className="text-white/40 font-bold uppercase text-xs">Quit</button>
         <div className="flex items-center gap-2 px-4 py-2 bg-blue-950/60 rounded-xl border border-white/10">
@@ -173,8 +187,9 @@ export const QuizGame = () => {
       <div className="flex flex-col gap-3">
         {question.options.map((option, index) => {
             const isSelected = selectedOption === index;
-            const isCorrect = isAnswering && index === question.correct;
-            const isWrong = isAnswering && isSelected && index !== question.correct;
+            const correctIdx = (question.answer !== undefined ? question.answer : question.correct);
+            const isCorrect = isAnswering && index === correctIdx;
+            const isWrong = isAnswering && isSelected && index !== correctIdx;
 
             return (
                 <button

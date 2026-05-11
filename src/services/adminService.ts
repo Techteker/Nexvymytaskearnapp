@@ -53,31 +53,15 @@ export const adminService = {
     return await res.json();
   },
 
+  getStats: async () => {
+    const headers = await getHeaders();
+    const res = await fetch('/api/admin/stats', { headers });
+    return await res.json();
+  },
+
   // Stats
   getDashboardStats: async () => {
-    try {
-      const headers = await getHeaders();
-      const [users, tasks, submissions, withdrawals] = await Promise.all([
-        fetch('/api/admin/users', { headers }).then(r => r.json()),
-        fetch('/api/tasks').then(r => r.json()),
-        fetch('/api/admin/submissions', { headers }).then(r => r.json()),
-        fetch('/api/admin/withdrawals', { headers }).then(r => r.json()),
-      ]);
-
-      return {
-        totalUsers: users.length,
-        totalTasks: tasks.length,
-        totalSubmissions: submissions.length,
-        pendingSubmissions: submissions.filter((s: any) => s.status === 'pending').length,
-        totalWithdrawals: withdrawals.length,
-        pendingWithdrawals: withdrawals.filter((w: any) => w.status === 'pending').length,
-        totalQuiz: 0, // Could be derived if needed
-        totalRevenue: withdrawals.reduce((acc: number, w: any) => acc + (w.status === 'completed' ? w.amount : 0), 0),
-        dailyTraffic: 0,
-      };
-    } catch (e) {
-      return null;
-    }
+    return await adminService.getStats();
   },
 
   // User Management
@@ -108,8 +92,12 @@ export const adminService = {
   },
 
   deleteUser: async (uid: string) => {
-    // Implement delete if needed, for now just ban
-    await adminService.updateUser(uid, { isBanned: true });
+    const headers = await getHeaders();
+    const res = await fetch(`/api/admin/users/${uid}/delete`, {
+      method: 'POST',
+      headers
+    });
+    return res.ok;
   },
 
   // Task Management

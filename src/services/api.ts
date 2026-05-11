@@ -10,6 +10,16 @@ const getHeaders = async () => {
 };
 
 export const apiService = {
+  async getAppSettings() {
+    try {
+      const res = await fetch('/api/settings');
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (e) {
+      return null;
+    }
+  },
+
   async spin(bet: number) {
     try {
       const headers = await getHeaders();
@@ -145,13 +155,23 @@ export const apiService = {
     }
   },
 
-  async completeQuiz(score: number, total: number) {
+  async getQuizzes() {
+    try {
+      const res = await fetch('/api/quizzes');
+      if (!res.ok) return [];
+      return await res.json();
+    } catch (e) {
+      return [];
+    }
+  },
+
+  async submitQuiz(quizId: string, score: number, answers: any[]) {
     try {
       const headers = await getHeaders();
-      const res = await fetch('/api/user/quiz/complete', {
+      const res = await fetch('/api/quizzes/submit', {
         method: 'POST',
         headers,
-        body: JSON.stringify({ score, total }),
+        body: JSON.stringify({ quizId, score, answers }),
       });
       if (!res.ok) {
         const text = await res.text();
@@ -161,6 +181,11 @@ export const apiService = {
     } catch (e) {
       return { error: 'Connection to server failed' };
     }
+  },
+
+  async completeQuiz(score: number, total: number) {
+    // This is a legacy method, keeping for compatibility but redirects to generic submit if needed
+    return this.submitQuiz('legacy', (score/total)*100, []);
   },
 
   async claimDailyReward() {

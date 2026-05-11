@@ -9,7 +9,7 @@ import { motion } from 'motion/react';
 import { UserRole } from '../../types';
 
 export const AdminLogin: React.FC = () => {
-  const [email, setEmail] = useState('ranarajendar930@gmail.com');
+  const [email, setEmail] = useState('ranarajendar999@gmail.com');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +24,8 @@ export const AdminLogin: React.FC = () => {
 
     try {
       // 0. Strict Pre-filter
-      if (email.toLowerCase() !== 'ranarajendar930@gmail.com') {
+      const authorizedEmails = ['ranarajendar930@gmail.com', 'ranarajendar999@gmail.com'];
+      if (!authorizedEmails.includes(email.toLowerCase())) {
         setError('Access Denied: Only the authorized Super Admin may access this portal.');
         setLoading(false);
         return;
@@ -37,7 +38,7 @@ export const AdminLogin: React.FC = () => {
       } catch (err: any) {
         // If user doesn't exist and it's the default admin email, try to register
         // User provided the password @Rajendar022 in the latest prompt
-        if (err.code === 'auth/user-not-found' && email === 'ranarajendar930@gmail.com' && (password === '@Rajendar022' || password === '@Rajendar02')) {
+        if (err.code === 'auth/user-not-found' && authorizedEmails.includes(email) && (password === '@Rajendar022' || password === '@Rajendar02')) {
           userCredential = await createUserWithEmailAndPassword(auth, email, password);
           setSetupMode(true);
         } else {
@@ -53,7 +54,7 @@ export const AdminLogin: React.FC = () => {
 
       if (!adminSnap.exists()) {
         // Create admin role ONLY for the authorized email
-        if (email === 'ranarajendar930@gmail.com') {
+        if (authorizedEmails.includes(email)) {
           await setDoc(adminDocRef, {
             email: email,
             role: UserRole.SUPER_ADMIN,

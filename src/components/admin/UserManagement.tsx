@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { adminService } from '../../services/adminService';
 import { User } from '../../types';
+import { useToast } from '../../context/ToastContext';
 import { 
   Search, 
   Filter, 
@@ -22,6 +23,7 @@ export const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const { showToast } = useToast();
 
   useEffect(() => {
     loadUsers();
@@ -44,19 +46,30 @@ export const UserManagement: React.FC = () => {
 
   const toggleBan = async (user: User) => {
     const action = user.isBanned ? 'unban' : 'ban';
-    if (confirm(`Are you sure you want to ${action} this user?`)) {
-      await adminService.updateUser(user.uid, { isBanned: !user.isBanned });
-      await adminService.logAction('SUPER_ADMIN', `USER_${action.toUpperCase()}`, `User ${user.email} was ${action}ned.`);
-      loadUsers();
+    if (window.confirm(`Are you sure you want to ${action} this user?`)) {
+      try {
+        await adminService.updateUser(user.uid, { isBanned: !user.isBanned });
+        await adminService.logAction('SUPER_ADMIN', `USER_${action.toUpperCase()}`, `User ${user.email} was ${action}ned.`);
+        showToast(`User ${action}ned successfully`, 'success');
+        loadUsers();
+      } catch (err: any) {
+        showToast(err.message, 'error');
+      }
     }
   };
 
   const deleteUser = async (uid: string) => {
     const userToDelete = users.find(u => u.uid === uid);
-    if (confirm('CRITICAL: Are you sure you want to PERMANENTLY delete this user? This cannot be undone.')) {
-      await adminService.deleteUser(uid);
-      await adminService.logAction('SUPER_ADMIN', 'USER_DELETE', `User ${userToDelete?.email || uid} was permanently deleted.`);
-      loadUsers();
+    if (window.confirm('CRITICAL: Are you sure you want to PERMANENTLY delete this user? This cannot be undone.')) {
+      try {
+        const ok = await adminService.deleteUser(uid);
+        if (!ok) throw new Error("Delete failed");
+        await adminService.logAction('SUPER_ADMIN', 'USER_DELETE', `User ${userToDelete?.email || uid} was permanently deleted.`);
+        showToast("User deleted permanently", 'success');
+        loadUsers();
+      } catch (err: any) {
+        showToast(err.message, 'error');
+      }
     }
   };
 

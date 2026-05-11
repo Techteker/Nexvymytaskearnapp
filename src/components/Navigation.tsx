@@ -1,15 +1,15 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { LayoutGrid, RotateCcw, Gift, Wallet, Trophy } from 'lucide-react';
+import { LayoutGrid, RotateCcw, User, Wallet, Trophy } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 
 const navItems = [
-  { path: '/', icon: LayoutGrid, label: 'PUZZLE' },
-  { path: '/tasks', icon: Trophy, label: 'FIND PAIR' },
+  { path: '/', icon: LayoutGrid, label: 'GAMES' },
+  { path: '/tasks', icon: Trophy, label: 'TASKS' },
   { path: '/spinner', icon: RotateCcw, label: 'SPINNER' },
-  { path: '/daily-gift', icon: Gift, label: 'DAILY GIFT' },
-  { path: '/withdraw', icon: Wallet, label: 'WITHDRAW' },
+  { path: '/withdraw', icon: Wallet, label: 'WALLET' },
+  { path: '/profile', icon: User, label: 'PROFILE' },
 ];
 
 export const Navigation = () => {

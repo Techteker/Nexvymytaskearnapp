@@ -66,7 +66,7 @@ export const Dashboard: React.FC = () => {
   const statCards = [
     { label: 'Total Users', value: stats?.totalUsers || 0, icon: Users, color: 'bg-blue-500', trend: '+12.5%' },
     { label: 'Total Tasks', value: stats?.totalTasks || 0, icon: CheckCircle, color: 'bg-emerald-500', trend: '+5.2%' },
-    { label: 'Pending Submissions', value: stats?.pendingSubmissions || 0, icon: Clock, color: 'bg-amber-500', trend: '-2.1%' },
+    { label: 'Pending Submissions', value: stats?.pendingTasks || 0, icon: Clock, color: 'bg-amber-500', trend: '-2.1%' },
     { label: 'Total Revenue', value: `$${stats?.totalRevenue?.toLocaleString() || 0}`, icon: DollarSign, color: 'bg-purple-500', trend: '+18.7%' },
     { label: 'Pending Withdrawals', value: stats?.pendingWithdrawals || 0, icon: Wallet, color: 'bg-rose-500', trend: '0.0%' },
     { label: 'Daily Traffic', value: stats?.dailyTraffic || 0, icon: Activity, color: 'bg-indigo-500', trend: '+7.4%' },

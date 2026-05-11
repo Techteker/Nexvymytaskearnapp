@@ -4,11 +4,13 @@ import { TopBar } from '../components/TopBar';
 import { CoinIcon } from '../components/CoinIcon';
 import { Users, Copy, Share2, TrendingUp, DollarSign, Clock, CheckCircle2, ShieldCheck, Mail, Info } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 import { apiService } from '../services/api';
 
 export const Referral = () => {
   const { user, refreshUser } = useAuth();
+  const { showToast } = useToast();
   const [copied, setCopied] = React.useState(false);
   const [referralInput, setReferralInput] = React.useState('');
   const [referralStats, setReferralStats] = React.useState({
@@ -34,6 +36,7 @@ export const Referral = () => {
   const copyToClipboard = () => {
     navigator.clipboard.writeText(referralCode);
     setCopied(true);
+    showToast("Referral Code Copied!", 'info');
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -42,11 +45,11 @@ export const Referral = () => {
     try {
       const data = await apiService.claimReferral(referralInput);
       if (data.error) throw new Error(data.error);
-      alert(`Referral claimed! Reward: ${data.reward} coins`);
+      showToast(`Referral claimed! Reward: ${data.reward} coins`, 'success');
       await refreshUser();
       setReferralInput('');
     } catch (err: any) {
-      alert(err.message);
+      showToast(err.message, 'error');
     }
   };
 

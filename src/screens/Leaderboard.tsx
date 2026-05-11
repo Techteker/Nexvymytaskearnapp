@@ -50,8 +50,6 @@ export const Leaderboard = () => {
         animate={{ opacity: 1 }}
         className="flex flex-col gap-6"
       >
-        <TopBar />
-
         <div className="sticky top-0 z-20 pt-2 pb-4 mesh-gradient">
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">

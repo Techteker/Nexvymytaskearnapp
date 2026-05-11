@@ -5,6 +5,7 @@ import { Wallet, Smartphone, CreditCard, ChevronRight, History, CheckCircle2, Cl
 import { CoinIcon } from '../components/CoinIcon';
 import { useAuth } from '../context/AuthContext';
 import { apiService } from '../services/api';
+import { useToast } from '../context/ToastContext';
 
 const methods = [
   { id: 'paytm', name: 'Paytm', icon: Smartphone, color: 'bg-blue-500' },
@@ -15,6 +16,8 @@ const methods = [
 
 export const Withdraw = () => {
   const { user, refreshUser } = useAuth();
+  const { showToast } = useToast();
+  const [settings, setSettings] = React.useState<any>(null);
   const [withdrawals, setWithdrawals] = React.useState<any[]>([]);
   const [selected, setSelected] = React.useState('paytm');
   const [loading, setLoading] = React.useState(false);
@@ -22,25 +25,29 @@ export const Withdraw = () => {
   const [amount, setAmount] = React.useState('');
 
   const loadData = async () => {
-    const data = await apiService.getWithdrawals();
-    setWithdrawals(data);
+    const [wData, sData] = await Promise.all([
+      apiService.getWithdrawals(),
+      apiService.getAppSettings()
+    ]);
+    setWithdrawals(wData);
+    setSettings(sData);
   };
 
   React.useEffect(() => {
     loadData();
   }, []);
 
-  const minWithdrawalValue = (user as any)?.settings?.minWithdrawal || 1000;
+  const minWithdrawalValue = settings?.minWithdrawal || 1000;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const withdrawAmount = parseInt(amount);
     if (user && user.coins < withdrawAmount) {
-      alert("Insufficient balance");
+      showToast("Insufficient balance", 'error');
       return;
     }
     if (withdrawAmount < minWithdrawalValue) {
-      alert(`Minimum withdrawal is ${minWithdrawalValue.toLocaleString()} coins`);
+      showToast(`Min withdrawal: ${minWithdrawalValue.toLocaleString()} coins`, 'error');
       return;
     }
 
@@ -48,13 +55,13 @@ export const Withdraw = () => {
     try {
       const data = await apiService.withdraw(withdrawAmount, selected, details);
       if (data.error) throw new Error(data.error);
-      alert("Withdrawal submitted successfully!");
+      showToast("Withdrawal submitted successfully!", 'success');
       setAmount('');
       setDetails('');
       await refreshUser();
       loadData();
     } catch (err: any) {
-      alert(err.message);
+      showToast(err.message, 'error');
     } finally {
       setLoading(false);
     }
@@ -66,8 +73,6 @@ export const Withdraw = () => {
       animate={{ opacity: 1, scale: 1 }}
       className="flex flex-col gap-6"
     >
-      <TopBar />
-
       <div className="gaming-card p-6 bg-gradient-to-br from-gaming-blue-800 to-gaming-blue-900 border-gaming-accent/30 relative overflow-hidden">
         <div className="flex justify-between items-center relative z-10">
           <div>

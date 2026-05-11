@@ -6,6 +6,7 @@ import { Search, Filter, AppWindow, PlayCircle, FileText, CheckCircle2, HelpCirc
 import { CoinIcon } from '../components/CoinIcon';
 
 import { apiService } from '../services/api';
+import { useToast } from '../context/ToastContext';
 
 const categories = ['All', 'Surveys', 'App Install', 'Games', 'Quiz'];
 
@@ -21,6 +22,7 @@ export const Tasks = () => {
   const [activeTab, setActiveTab] = React.useState('All');
   const [tasks, setTasks] = React.useState<any[]>([]);
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   React.useEffect(() => {
     apiService.getTasks().then(setTasks);
@@ -33,7 +35,7 @@ export const Tasks = () => {
       navigate(`/task/${task.id}`);
     } else {
       // Direct action for ads or simple tasks
-      alert('Task Started!');
+      showToast('Task Started!', 'info');
     }
   };
 

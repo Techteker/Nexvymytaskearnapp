@@ -4,9 +4,11 @@ import { TopBar } from '../components/TopBar';
 import { CoinIcon } from '../components/CoinIcon';
 import confetti from 'canvas-confetti';
 import { useNavigate } from 'react-router-dom';
-import { History, Volume2, Info, Users } from 'lucide-react';
+import { History, Volume2, VolumeX, Info, Users, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+import { AnimatePresence } from 'motion/react';
 
 const SECTIONS = [
   { value: '5x', color: '#3b82f6', prob: 0.01 },
@@ -31,28 +33,83 @@ const MULTIPLIER_TO_INDEX: { [key: number]: number } = {
 export const Spinner = () => {
   const navigate = useNavigate();
   const { refreshUser } = useAuth();
+  const { showToast } = useToast();
   const controls = useAnimation();
   const [spinning, setSpinning] = React.useState(false);
   const [result, setResult] = React.useState<string | null>(null);
   const [selectedPack, setSelectedPack] = React.useState(0);
+  const [muted, setMuted] = React.useState(false);
+  const [showHistory, setShowHistory] = React.useState(false);
+  const [history, setHistory] = React.useState<any[]>([]);
 
   const packs = [
-    { coins: 20, color: 'bg-red-500' },
-    { coins: 50, color: 'bg-orange-500' },
-    { coins: 100, color: 'bg-blue-500' },
-    { coins: 500, color: 'bg-pink-600' },
+    { coins: 200, color: 'bg-red-500' },
+    { coins: 500, color: 'bg-orange-500' },
+    { coins: 1000, color: 'bg-blue-500' },
+    { coins: 5000, color: 'bg-pink-600' },
   ];
+
+  React.useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  const fetchHistory = async () => {
+    try {
+      const res = await fetch('/api/user/spin-history', {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      const data = await res.json();
+      setHistory(data || []);
+    } catch (e) {}
+  };
+
+  const playSpinSound = () => {
+    if (muted) return;
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(100, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 3);
+      gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 3.9);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 4);
+    } catch (e) {}
+  };
+
+  const playWinSound = () => {
+    if (muted) return;
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(500, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1000, ctx.currentTime + 0.5);
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.6);
+    } catch (e) {}
+  };
 
   const spin = async () => {
     if (spinning) return;
     
     setSpinning(true);
     setResult(null);
+    playSpinSound();
 
     try {
       const data = await apiService.spin(packs[selectedPack].coins);
       if (data.error) {
-        alert(data.error);
+        showToast(data.error, 'error');
         setSpinning(false);
         return;
       }
@@ -81,11 +138,13 @@ export const Spinner = () => {
           colors: ['#fbbf24', '#3b82f6', '#ffffff']
         });
         setResult(`${multiplier}x WIN! (+${win})`);
-        
+        playWinSound();
         await refreshUser(); // Added to refresh balance
+        fetchHistory();
       } else {
         setResult('BETTER LUCK NEXT TIME!');
         await refreshUser(); // Added to refresh balance
+        fetchHistory();
       }
     } catch (error) {
       console.error(error);
@@ -112,13 +171,19 @@ export const Spinner = () => {
       <div className="relative flex justify-center py-2">
         {/* Floating Controls */}
         <div className="absolute left-0 top-0 flex flex-col gap-3">
-           <button className="flex flex-col items-center group">
+           <button 
+             onClick={() => setMuted(!muted)}
+             className="flex flex-col items-center group"
+            >
               <div className="p-2.5 bg-blue-700/50 rounded-xl border-2 border-white/10 group-active:scale-90 transition-transform">
-                <Volume2 className="w-5 h-5" />
+                {muted ? <VolumeX className="w-5 h-5 text-red-400" /> : <Volume2 className="w-5 h-5" />}
               </div>
-              <span className="text-[8px] font-black uppercase mt-1">Sound</span>
+              <span className="text-[8px] font-black uppercase mt-1">{muted ? 'Muted' : 'Sound'}</span>
            </button>
-           <button className="flex flex-col items-center group">
+           <button 
+             onClick={() => setShowHistory(true)}
+             className="flex flex-col items-center group"
+            >
               <div className="p-2.5 bg-blue-700/50 rounded-xl border-2 border-white/10 group-active:scale-90 transition-transform">
                 <History className="w-5 h-5" />
               </div>
@@ -208,7 +273,7 @@ export const Spinner = () => {
                   <div className={`w-10 h-10 rounded-xl ${pack.color} border-2 border-white/20 flex items-center justify-center shadow-lg`}>
                      <CoinIcon size={20} />
                   </div>
-                  <span className="text-sm font-black text-white">₹{pack.coins}</span>
+                  <span className="text-sm font-black text-white">{pack.coins}</span>
                   {selectedPack === i && (
                     <motion.div layoutId="selector" className="absolute inset-0 bg-white/10" />
                   )}
@@ -222,7 +287,7 @@ export const Spinner = () => {
           disabled={spinning}
           className="gaming-button-yellow w-full py-5 text-2xl tracking-tighter font-black shadow-[0_8px_0_rgb(180,83,9)] active:shadow-none active:translate-y-[4px] transition-all"
         >
-          {spinning ? 'SPINNING...' : `SPIN FOR ₹${packs[selectedPack].coins}`}
+          {spinning ? 'SPINNING...' : `SPIN FOR ${packs[selectedPack].coins}`}
         </button>
       </div>
 
@@ -247,6 +312,51 @@ export const Spinner = () => {
           Pro Tip: Login after 8 PM to get 2x multipliers on every 10th spin!
         </p>
       </div>
+
+      <AnimatePresence>
+        {showHistory && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-slate-900 border border-white/10 rounded-3xl w-full max-w-md overflow-hidden flex flex-col max-h-[80vh]"
+            >
+              <div className="p-6 border-b border-white/5 flex items-center justify-between">
+                <h3 className="text-xl font-black text-white italic tracking-tighter">SPIN HISTORY</h3>
+                <button onClick={() => setShowHistory(false)} className="p-2 hover:bg-white/5 rounded-full transition-colors">
+                  <X className="w-6 h-6 text-white/40" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                {history.length === 0 && (
+                  <div className="py-20 text-center text-white/20 font-black italic uppercase">No history yet</div>
+                )}
+                {history.map((item) => (
+                  <div key={item.id} className="bg-white/5 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-black text-white/40 uppercase">Bet:</span>
+                        <span className="text-xs font-bold text-white">{item.bet}</span>
+                      </div>
+                      <p className="text-[10px] text-white/20 font-medium">{new Date(item.timestamp).toLocaleString()}</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="flex items-center gap-2 justify-end">
+                        <span className="text-lg font-black italic tracking-tighter text-coin-gold">{item.win > 0 ? `+${item.win}` : '0'}</span>
+                        <CoinIcon size={16} />
+                      </div>
+                      <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${item.multiplier > 0 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
+                        {item.multiplier > 0 ? `${item.multiplier}x Multiplier` : 'No Win'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

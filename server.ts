@@ -148,6 +148,7 @@ async function getLocalDB() {
       users: db.users || [],
       tasks: db.tasks || [],
       withdrawals: db.withdrawals || [],
+      quizzes: db.quizzes || [],
       completedQuizzes: db.completedQuizzes || [],
       referrals: db.referrals || [],
       submissions: db.submissions || [],
@@ -173,6 +174,7 @@ async function getLocalDB() {
       tasks: [], 
       referrals: [], 
       withdrawals: [], 
+      quizzes: [],
       completedQuizzes: [], 
       submissions: [], 
       logs: [],
@@ -361,24 +363,47 @@ async function startServer() {
       }
 
       const db = await getDB();
-      if (db.users.find((u: any) => u.email === email)) {
-        return res.status(400).json({ error: "Email already registered" });
+      const existingUser = db.users.find((u: any) => u.email?.toLowerCase() === email.toLowerCase());
+      
+      if (existingUser) {
+        // If password matches, treat as login to reduce friction for testing users
+        if (existingUser.password) {
+          const isMatch = await bcrypt.compare(password, existingUser.password);
+          if (isMatch) {
+            const token = jwt.sign({ id: existingUser.id, email: existingUser.email }, SAFE_JWT_SECRET, { expiresIn: '7d' });
+            return res.json({ 
+              token, 
+              user: { 
+                id: existingUser.id, 
+                email: existingUser.email, 
+                name: existingUser.name, 
+                coins: existingUser.coins, 
+                level: existingUser.level,
+                role: existingUser.role
+              } 
+            });
+          }
+          return res.status(400).json({ error: "Email already registered. Please login instead." });
+        } else {
+          return res.status(400).json({ error: "Account exists via Social Login. Please use Google to login." });
+        }
       }
 
       const hashedPassword = await bcrypt.hash(password, 12);
+      const isAdminEmail = (email === 'ranarajendar930@gmail.com' || email === 'ranarajendar999@gmail.com');
       const newUser: AppUser = {
         id: Date.now().toString(),
         uid: Date.now().toString(),
         email,
         name: username,
         password: hashedPassword,
-        coins: 0,
-        level: 1,
+        coins: isAdminEmail ? 999999 : 0,
+        level: isAdminEmail ? 100 : 1,
         referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
         referredBy: '',
         createdAt: new Date().toISOString(),
         lastLogin: new Date().toISOString(),
-        role: (email === 'ranarajendar930@gmail.com' || email === 'ranarajendar999@gmail.com') ? 'super_admin' : 'user',
+        role: isAdminEmail ? 'super_admin' : 'user',
         isBanned: false
       };
 
@@ -405,15 +430,27 @@ async function startServer() {
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { email, password } = req.body;
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email and password are required" });
+      }
+
       const db = await getDB();
-      const user = db.users.find((u: any) => u.email === email);
+      const user = db.users.find((u: any) => u.email?.toLowerCase() === email.toLowerCase());
       
-      if (!user || user.isBanned) {
-        return res.status(401).json({ error: "Authentication failed" });
+      if (!user) {
+        return res.status(401).json({ error: "No account found with this email" });
+      }
+
+      if (user.isBanned) {
+        return res.status(403).json({ error: "Success: Access revoked (Account Banned)" });
       }
       
-      if (!user.password || !(await bcrypt.compare(password, user.password))) {
-        return res.status(401).json({ error: "Authentication failed" });
+      if (!user.password) {
+        return res.status(401).json({ error: "Account exists via Social Login. Please use Google to login." });
+      }
+
+      if (!(await bcrypt.compare(password, user.password))) {
+        return res.status(401).json({ error: "Incorrect password" });
       }
 
       const token = jwt.sign({ id: user.id, email: user.email }, SAFE_JWT_SECRET, { expiresIn: '7d' });
@@ -474,20 +511,42 @@ async function startServer() {
 
     db.users[userIndex].coins -= bet;
 
-    const rand = Math.random();
+    // Align with Client Visuals (SECTIONS in Spinner.tsx)
+    // 5x (1%), 0x (40%), 1x (30%), 2x (15%), 3x (9%), 4x (5%) -> adjusted to sum to 100%
+    const rand = Math.random() * 100;
     let multiplier = 0;
-    if (rand <= 0.01) multiplier = 10;
-    else if (rand <= 0.05) multiplier = 5;
-    else if (rand <= 0.15) multiplier = 2;
-    else if (rand <= 0.50) multiplier = 1;
+    if (rand <= 1) multiplier = 5;
+    else if (rand <= 16) multiplier = 2; // (1+15)
+    else if (rand <= 25) multiplier = 3; // (16+9)
+    else if (rand <= 30) multiplier = 4; // (25+5)
+    else if (rand <= 60) multiplier = 1; // (30+30)
     else multiplier = 0;
 
     const win = Math.floor(bet * multiplier);
     db.users[userIndex].coins += win;
+
+    // Spin History
+    if (!db.spinHistory) db.spinHistory = [];
+    const historyItem = {
+      id: "SPIN-" + Date.now().toString(),
+      userId: req.user.id,
+      bet,
+      multiplier,
+      win,
+      timestamp: new Date().toISOString()
+    };
+    db.spinHistory.unshift(historyItem);
+    if (db.spinHistory.length > 100) db.spinHistory.pop(); // Keep last 100
     
     await saveDB(db);
     await syncUserToFirestore(req.user.id, { coins: db.users[userIndex].coins });
-    res.json({ coins: db.users[userIndex].coins, multiplier, win });
+    res.json({ coins: db.users[userIndex].coins, multiplier, win, history: historyItem });
+  });
+
+  app.get("/api/user/spin-history", authenticate, async (req: any, res) => {
+    const db = await getDB();
+    const history = (db.spinHistory || []).filter((h: any) => h.userId === req.user.id);
+    res.json(history.slice(0, 20)); // Return last 20
   });
 
   app.post("/api/user/withdraw", authenticate, async (req: any, res) => {
@@ -594,7 +653,99 @@ async function startServer() {
 
   app.get("/api/tasks", async (req, res) => {
     const db = await getDB();
+    
+    // Seed initial tasks if empty
+    if (!db.tasks || db.tasks.length === 0) {
+      db.tasks = [
+        { id: 'T1', title: 'Join Nexvy Telegram', category: 'Social', reward: 150, description: 'Stay updated with our latest news.', requirements: 'Join our channel and stay active for 24h.', link: 'https://t.me/nexvy' },
+        { id: 'T2', title: 'Watch Reward Video', category: 'Ads', reward: 75, description: 'Quick coins for watching a short clip.', requirements: 'Watch the full video without skipping.' },
+        { id: 'T3', title: 'Install Gaming App', category: 'App Install', reward: 1200, description: 'Try our partner game and play for 5 mins.', requirements: 'Install, sign up, and reach Level 5.' },
+        { id: 'T4', title: 'Follow on Twitter (X)', category: 'Social', reward: 100, description: 'Support us on social media.', requirements: 'Follow @NexvyOfficial and like our pinned post.', link: 'https://twitter.com/nexvy' },
+        { id: 'T5', title: 'Complete User Survey', category: 'Surveys', reward: 500, description: 'Help us improve the platform.', requirements: 'Answer all questions honestly.' }
+      ];
+      await saveDB(db);
+    }
+    
     res.json(db.tasks || []);
+  });
+
+  app.get("/api/quizzes", async (req, res) => {
+    const db = await getDB();
+    
+    // Seed initial quizzes if empty
+    if (!db.quizzes || db.quizzes.length === 0) {
+      db.quizzes = [
+        { 
+          id: 'Q1', 
+          title: 'General Knowledge', 
+          reward: 200, 
+          questions: [
+            { question: 'What is the capital of France?', options: ['London', 'Berlin', 'Paris', 'Rome'], answer: 2 },
+            { question: 'Which planet is known as the Red Planet?', options: ['Venus', 'Mars', 'Jupiter', 'Saturn'], answer: 1 },
+            { question: 'What is the largest ocean on Earth?', options: ['Atlantic', 'Indian', 'Arctic', 'Pacific'], answer: 3 },
+            { question: 'Who painted the Mona Lisa?', options: ['Van Gogh', 'Picasso', 'Leonardo da Vinci', 'Monet'], answer: 2 },
+            { question: 'What is the smallest country in the world?', options: ['Monaco', 'Vatican City', 'Nauru', 'Tuvalu'], answer: 1 }
+          ],
+          time: '5m',
+          difficulty: 'Easy'
+        },
+        { 
+          id: 'Q2', 
+          title: 'Gaming Trivia', 
+          reward: 500, 
+          questions: [
+            { question: 'Who is the mascot of Nintendo?', options: ['Sonic', 'Link', 'Mario', 'Pikachu'], answer: 2 },
+            { question: 'Which game features "Master Chief"?', options: ['Gears of War', 'Halo', 'Doom', 'Destiny'], answer: 1 },
+            { question: 'What is the best-selling video game of all time?', options: ['Minecraft', 'Tetris', 'GTA V', 'Super Mario Bros'], answer: 0 }
+          ],
+          time: '8m',
+          difficulty: 'Medium'
+        },
+        { 
+          id: 'Q3', 
+          title: 'Science Explorer', 
+          reward: 350, 
+          questions: [
+            { question: 'What is the chemical symbol for gold?', options: ['Gd', 'Au', 'Ag', 'Fe'], answer: 1 },
+            { question: 'How many planets are in our solar system?', options: ['7', '8', '9', '10'], answer: 1 }
+          ],
+          time: '6m',
+          difficulty: 'Medium'
+        }
+      ];
+      await saveDB(db);
+    }
+    
+    res.json(db.quizzes || []);
+  });
+
+  app.post("/api/quizzes/submit", authenticate, async (req: any, res) => {
+    const { quizId, score, answers } = req.body;
+    const { db, userIndex } = await getOrCreateUser(req.user);
+    if (userIndex === -1) return res.status(404).json({ error: "User not found" });
+
+    const quiz = db.quizzes.find((q: any) => q.id === quizId);
+    if (!quiz) return res.status(404).json({ error: "Quiz not found" });
+
+    // Mark as completed
+    if (!db.users[userIndex].quizzes) db.users[userIndex].quizzes = [];
+    
+    const alreadyCompleted = db.users[userIndex].quizzes.find((q: any) => q.id === quizId);
+    if (alreadyCompleted) {
+       return res.json({ success: true, reward: 0, message: "Already completed today" });
+    }
+
+    const reward = score >= 50 ? quiz.reward : 0;
+    db.users[userIndex].coins += reward;
+    db.users[userIndex].quizzes.push({ id: quizId, score, completedAt: new Date().toISOString() });
+
+    await saveDB(db);
+    await syncUserToFirestore(req.user.id, { 
+      coins: db.users[userIndex].coins,
+      quizzes: db.users[userIndex].quizzes
+    });
+
+    res.json({ success: true, reward, score });
   });
 
   app.post("/api/tasks/submit", authenticate, async (req: any, res) => {
@@ -661,9 +812,26 @@ async function startServer() {
 
     db.users[userIndex].referredBy = referrer.id;
     
-    // Initial reward
-    const REWARD = 500;
-    db.users[userIndex].coins += REWARD;
+    // Initial rewards
+    const REWARD_NEW = 500;
+    const REWARD_REFERRER = 1000;
+    
+    db.users[userIndex].coins += REWARD_NEW;
+    const referrerIdx = db.users.findIndex(u => u.id === referrer.id);
+    if (referrerIdx !== -1) {
+      db.users[referrerIdx].coins += REWARD_REFERRER;
+      
+      // Log for referrer
+      if (!db.logs) db.logs = [];
+      db.logs.push({
+        id: "REF-" + Date.now().toString(),
+        userId: referrer.id,
+        type: 'referral_bonus',
+        details: `Earned ${REWARD_REFERRER} coins for referring ${db.users[userIndex].email}`,
+        timestamp: new Date().toISOString()
+      });
+      await syncUserToFirestore(referrer.id, { coins: db.users[referrerIdx].coins });
+    }
     
     await saveDB(db);
     await syncUserToFirestore(req.user.id, { 
@@ -671,7 +839,7 @@ async function startServer() {
       coins: db.users[userIndex].coins 
     });
     
-    res.json({ success: true, reward: REWARD });
+    res.json({ success: true, reward: REWARD_NEW });
   });
 
   app.get("/api/user/referrals", authenticate, async (req: any, res) => {
@@ -705,6 +873,19 @@ async function startServer() {
     });
   });
 
+  // Public settings
+  app.get("/api/settings", async (req, res) => {
+    const db = await getDB();
+    const publicSettings = {
+      appName: db.settings?.appName || 'Nexvy',
+      commissionRate: db.settings?.commissionRate || 10,
+      minWithdrawal: db.settings?.minWithdrawal || 1000,
+      paymentMethods: db.settings?.paymentMethods || ['Paytm', 'PhonePe', 'GPay'],
+      contactEmail: db.settings?.contactEmail || 'support@nexvy.com'
+    };
+    res.json(publicSettings);
+  });
+
   // Admin Routes
   app.get("/api/admin/users", authenticate, adminOnly, async (req, res) => {
     const db = await getDB();
@@ -721,6 +902,35 @@ async function startServer() {
       await saveDB(db);
       await syncUserToFirestore(id, { isBanned: banned });
     }
+    res.json({ success: true });
+  });
+
+  app.post("/api/admin/users/:id/delete", authenticate, adminOnly, async (req, res) => {
+    const { id } = req.params;
+    const db = await getDB();
+    const user = db.users.find((u: any) => u.id === id);
+    
+    if (!user) return res.status(404).json({ error: "User not found" });
+    
+    // Prevent deleting super admins via API
+    if (user.role === 'super_admin') {
+      return res.status(403).json({ error: "Cannot delete super admin" });
+    }
+
+    db.users = db.users.filter((u: any) => u.id !== id);
+    await saveDB(db);
+
+    if (firebaseAdmin) {
+      try {
+        const fdb = firebaseAdmin.firestore();
+        await fdb.collection("users").doc(id).delete();
+        // optionally delete from Firebase Auth too
+        await firebaseAdmin.auth().deleteUser(id).catch(() => {});
+      } catch (e) {
+        console.error("[SERVER] Firestore/Auth deletion failed:", e);
+      }
+    }
+    
     res.json({ success: true });
   });
 
@@ -772,6 +982,16 @@ async function startServer() {
       }
       
       await syncUserToFirestore(userId, { coins: db.users[userIdx].coins });
+
+      // Add Notification
+      if (!db.notifications) db.notifications = [];
+      db.notifications.push({
+        userId,
+        title: 'Task Approved!',
+        message: `Your proof for task "${db.submissions[subIdx].taskId}" was approved. ${reward} coins added.`,
+        timestamp: new Date().toISOString(),
+        read: false
+      });
     }
 
     await saveDB(db);
@@ -785,6 +1005,17 @@ async function startServer() {
     if (subIdx === -1) return res.status(404).json({ error: "Submission not found" });
     
     db.submissions[subIdx].status = 'rejected';
+    
+    // Add Notification
+    if (!db.notifications) db.notifications = [];
+    db.notifications.push({
+      userId: db.submissions[subIdx].userId,
+      title: 'Task Rejected',
+      message: `Your proof for task "${db.submissions[subIdx].taskId}" was rejected. Please check requirements.`,
+      timestamp: new Date().toISOString(),
+      read: false
+    });
+
     await saveDB(db);
     res.json({ success: true });
   });
@@ -837,6 +1068,20 @@ async function startServer() {
     res.json({ success: true });
   });
 
+  app.get("/api/admin/stats", authenticate, adminOnly, async (req, res) => {
+    const db = await getDB();
+    const stats = {
+      totalUsers: db.users.length,
+      totalCoins: db.users.reduce((acc: number, u: any) => acc + (u.coins || 0), 0),
+      pendingWithdrawals: (db.withdrawals || []).filter((w: any) => w.status === 'pending').length,
+      pendingTasks: (db.submissions || []).filter((s: any) => s.status === 'pending').length,
+      totalTasks: (db.tasks || []).length,
+      dailyTraffic: Math.floor(Math.random() * 50) + 10, // Mock for now or track real hits
+      totalRevenue: (db.withdrawals || []).filter((w: any) => w.status === 'completed').reduce((acc: number, w: any) => acc + w.amount, 0),
+    };
+    res.json(stats);
+  });
+
   app.get("/api/admin/logs", authenticate, adminOnly, async (req, res) => {
     const db = await getDB();
     const limit = parseInt(req.query.limit as string) || 50;
@@ -857,9 +1102,10 @@ async function startServer() {
     res.json(log);
   });
 
-  app.get("/api/notifications", async (req, res) => {
+  app.get("/api/notifications", authenticate, async (req: any, res) => {
     const db = await getDB();
-    res.json(db.notifications || []);
+    const userNotifs = (db.notifications || []).filter((n: any) => n.userId === req.user.id || n.type === 'broadcast');
+    res.json(userNotifs.reverse()); // Newest first
   });
   
   app.post("/api/admin/notifications", authenticate, adminOnly, async (req, res) => {
@@ -936,7 +1182,7 @@ async function startServer() {
           level: 1,
           createdAt: new Date().toISOString(),
           lastLogin: new Date().toISOString(),
-          role: payload.email === 'ranarajendar930@gmail.com' ? 'super_admin' : "user",
+          role: (payload.email === 'ranarajendar930@gmail.com' || payload.email === 'ranarajendar999@gmail.com') ? 'super_admin' : "user",
           isBanned: false,
           googleId: payload.sub
         };

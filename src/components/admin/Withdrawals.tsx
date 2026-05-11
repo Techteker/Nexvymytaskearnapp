@@ -82,11 +82,16 @@ export const Withdrawals: React.FC = () => {
               ) : withdrawals.map((w) => (
                 <tr key={w.id} className="hover:bg-slate-800/10 transition-colors">
                   <td className="px-6 py-4">
-                     <span className="text-sm font-mono text-slate-400">{w.userId.substring(0, 8)}...</span>
+                     <span className="text-sm font-mono text-slate-400">{w.email || w.userId.substring(0, 8)}</span>
                   </td>
                   <td className="px-6 py-4 uppercase text-xs font-bold text-slate-300">{w.method}</td>
-                  <td className="px-6 py-4 text-sm text-slate-400 max-w-xs truncate">{w.paymentDetails}</td>
-                  <td className="px-6 py-4 font-mono font-bold text-emerald-400">${w.amount.toFixed(2)}</td>
+                  <td className="px-6 py-4 text-sm text-slate-400 max-w-xs truncate">{w.details}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-1">
+                       <span className="font-mono font-bold text-amber-400">{w.amount?.toLocaleString()}</span>
+                       <span className="text-[10px] text-amber-500 font-black italic">COINS</span>
+                    </div>
+                  </td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase ${
                        w.status === 'successful' ? 'bg-emerald-500/10 text-emerald-400' :

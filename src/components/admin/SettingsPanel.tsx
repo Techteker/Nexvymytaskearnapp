@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { adminService } from '../../services/adminService';
+import { useToast } from '../../context/ToastContext';
 import { 
   Settings as SettingsIcon, 
   Target, 
@@ -15,6 +16,7 @@ import {
 import { motion } from 'motion/react';
 
 export const SettingsPanel: React.FC = () => {
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<'app' | 'ads' | 'notify' | 'security'>('app');
   const [settings, setSettings] = useState<any>({
     appName: 'Nexvy',
@@ -47,16 +49,16 @@ export const SettingsPanel: React.FC = () => {
     setSaving(true);
     await adminService.updateSettings(settings);
     setSaving(false);
-    alert('Settings saved successfully!');
+    showToast('Settings saved successfully!', 'success');
   };
 
   const handleBroadcast = async () => {
-    if (!notif.title || !notif.message) return alert('Please enter title and message');
+    if (!notif.title || !notif.message) return showToast('Please enter title and message', 'error');
     setSaving(true);
     await adminService.sendBroadcast(notif.title, notif.message);
     setSaving(false);
     setNotif({ title: '', message: '' });
-    alert('Broadcast sent successfully!');
+    showToast('Broadcast sent successfully!', 'success');
   };
 
   const tabs = [

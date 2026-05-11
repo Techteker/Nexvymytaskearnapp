@@ -37,7 +37,8 @@ export const Auth = () => {
 
   React.useEffect(() => {
     if (user && !loading) {
-      if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN' || user.email === 'ranarajendar930@gmail.com') {
+      const authorizedEmails = ['ranarajendar930@gmail.com', 'ranarajendar999@gmail.com'];
+      if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN' || authorizedEmails.includes(user.email)) {
         navigate('/admin');
       } else {
         navigate('/');
@@ -56,18 +57,31 @@ export const Auth = () => {
         const user = result.user;
         
         if (firestoreDb) {
+          const authorizedEmails = ['ranarajendar930@gmail.com', 'ranarajendar999@gmail.com'];
+          const isAdmin = authorizedEmails.includes(user.email?.toLowerCase() || '');
+          
           await setDoc(doc(firestoreDb, 'users', user.uid), {
             uid: user.uid,
             name: user.displayName || user.email?.split('@')[0],
             email: user.email,
             photoURL: user.photoURL || '',
-            coins: 0,
-            level: 1,
+            coins: isAdmin ? 999999 : 0,
+            level: isAdmin ? 100 : 1,
+            role: isAdmin ? 'super_admin' : 'user',
             referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
             referredBy: '',
             createdAt: serverTimestamp(),
             lastLogin: serverTimestamp()
           }, { merge: true });
+
+          if (isAdmin) {
+             await setDoc(doc(firestoreDb, 'admins', user.uid), {
+               email: user.email,
+               role: 'super_admin',
+               isSuperAdmin: true,
+               createdAt: serverTimestamp()
+             }, { merge: true });
+          }
         }
       } else {
         // Backend Google Login Fallback
@@ -152,7 +166,19 @@ export const Auth = () => {
       }
     } catch (err: any) {
       console.error(err);
-      setError(err.message);
+      let msg = err.message;
+      if (err.code === 'auth/email-already-in-use') {
+        msg = "Email already registered. Switching to login...";
+        setIsLogin(true); // Automatically switch to login for better UX
+      } else if (err.code === 'auth/wrong-password') {
+        msg = "Incorrect password. Please try again.";
+      } else if (err.code === 'auth/user-not-found') {
+        msg = "No account found with this email.";
+      } else if (err.message?.includes('Email already registered')) {
+        msg = "Email already registered. Please login instead.";
+        setIsLogin(true);
+      }
+      setError(msg);
     } finally {
       setAuthLoading(false);
     }
