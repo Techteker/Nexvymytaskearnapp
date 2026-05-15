@@ -6,7 +6,9 @@ import { Search, Filter, AppWindow, PlayCircle, FileText, CheckCircle2, HelpCirc
 import { CoinIcon } from '../components/CoinIcon';
 
 import { apiService } from '../services/api';
+import { adminService } from '../services/adminService';
 import { useToast } from '../context/ToastContext';
+import { Skeleton } from '../components/Skeleton';
 
 const categories = ['All', 'Surveys', 'App Install', 'Games', 'Quiz'];
 
@@ -20,28 +22,50 @@ const iconMap: Record<string, any> = {
 
 export const Tasks = () => {
   const [activeTab, setActiveTab] = React.useState('All');
+  const [search, setSearch] = React.useState('');
   const [tasks, setTasks] = React.useState<any[]>([]);
+  const [dynamicCategories, setDynamicCategories] = React.useState<string[]>([]);
+  const [loading, setLoading] = React.useState(true);
   const navigate = useNavigate();
   const { showToast } = useToast();
 
   React.useEffect(() => {
-    apiService.getTasks().then(setTasks);
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const [res, cats] = await Promise.all([
+          apiService.getTasks(),
+          adminService.getCategories()
+        ]);
+        setTasks(res);
+        if (cats.length > 0) {
+          setDynamicCategories(['All', ...cats.map((c: any) => c.name)]);
+        }
+      } catch (e) {
+        console.error('Failed to load tasks data');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
   }, []);
 
   const handleStartTask = (task: any) => {
-    if (task.category === 'Quiz') {
+    if (task.type === 'quiz') {
       navigate('/quizzes');
-    } else if (['Surveys', 'App Install', 'Games', 'Quiz'].includes(task.category)) {
-      navigate(`/task/${task.id}`);
     } else {
-      // Direct action for ads or simple tasks
-      showToast('Task Started!', 'info');
+      navigate(`/task/${task.$id}`);
     }
   };
 
-  const filteredTasks = activeTab === 'All' 
-    ? tasks 
-    : tasks.filter(t => t.category === activeTab);
+  const filteredTasks = tasks.filter(t => {
+    const matchesTab = activeTab === 'All' || t.category === activeTab;
+    const matchesSearch = t.title.toLowerCase().includes(search.toLowerCase()) || 
+                          t.description.toLowerCase().includes(search.toLowerCase());
+    return matchesTab && matchesSearch;
+  });
+
+  const displayCategories = dynamicCategories.length > 0 ? dynamicCategories : categories;
 
   return (
     <motion.div
@@ -49,36 +73,33 @@ export const Tasks = () => {
       animate={{ opacity: 1, x: 0 }}
       className="flex flex-col gap-6"
     >
-      <TopBar />
-
       <div className="flex flex-col gap-4">
-        <h2 className="text-2xl font-display font-black italic tracking-tighter text-white">EARN COINS</h2>
+        <h2 className="text-2xl font-display font-black italic tracking-tighter text-brand-purple">EARN COINS</h2>
         
         {/* Search & Filter */}
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input 
               type="text" 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               placeholder="Search tasks..." 
-              className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-10 pr-4 text-sm font-bold focus:outline-none focus:border-gaming-accent transition-colors"
+              className="w-full bg-white border border-slate-200 rounded-2xl py-3 pl-12 pr-4 text-sm font-bold focus:outline-none focus:border-brand-purple focus:ring-1 focus:ring-brand-purple/20 transition-all shadow-sm"
             />
           </div>
-          <button className="bg-white/5 border border-white/10 rounded-2xl p-3">
-            <Filter className="w-5 h-5 text-white/40" />
-          </button>
         </div>
 
         {/* Categories */}
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          {categories.map((cat) => (
+          {displayCategories.map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveTab(cat)}
-              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all whitespace-nowrap ${
+              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all whitespace-nowrap shadow-sm ${
                 activeTab === cat 
-                ? 'bg-gaming-accent glow-blue text-white' 
-                : 'bg-white/5 text-white/40 border border-white/10'
+                ? 'bg-brand-purple text-white' 
+                : 'bg-white text-slate-400 border border-slate-200'
               }`}
             >
               {cat}
@@ -89,40 +110,52 @@ export const Tasks = () => {
 
       {/* Task Grid */}
       <div className="grid grid-cols-2 gap-4">
-        {filteredTasks.length === 0 && <div className="col-span-2 text-center text-white/20 font-bold py-10 uppercase text-xs tracking-widest">No tasks found in this category</div>}
-        {filteredTasks.map((task, i) => {
-          const TaskIcon = iconMap[task.category] || iconMap['All'];
-          return (
-            <motion.div
-              key={task.id}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.05 }}
-              className="gaming-card p-4 flex flex-col items-center text-center gap-3 group hover:bg-blue-700/20 transition-all cursor-pointer"
-            >
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gaming-accent/20 to-blue-500/10 flex items-center justify-center border border-white/10 shadow-inner group-hover:border-gaming-accent/30 transition-all">
-                <TaskIcon className="w-8 h-8 text-gaming-accent" />
-              </div>
-              
-              <div className="flex flex-col gap-1 min-h-[40px] justify-center">
-                <h4 className="font-black text-xs text-white leading-tight">{task.title}</h4>
-                <p className="text-[9px] text-white/40 font-bold uppercase tracking-tighter">{task.category}</p>
-              </div>
-
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 w-full justify-center">
-                <CoinIcon size={14} />
-                <span className="font-display font-bold text-sm text-white">{task.reward}</span>
-              </div>
-              
-              <button 
-                onClick={() => handleStartTask(task)}
-                className="w-full py-2 bg-gaming-accent text-white text-[10px] font-black uppercase rounded-lg shadow-lg glow-blue hover:scale-105 transition-transform"
+        {loading ? (
+          Array(6).fill(0).map((_, i) => (
+            <div key={i} className="gaming-card p-4 flex flex-col items-center gap-3">
+              <Skeleton className="w-16 h-16 rounded-2xl" />
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-16" />
+              <Skeleton className="h-8 w-full mt-2" />
+            </div>
+          ))
+        ) : filteredTasks.length === 0 ? (
+          <div className="col-span-2 text-center text-slate-300 font-bold py-10 uppercase text-xs tracking-widest">No tasks found</div>
+        ) : (
+          filteredTasks.map((task, i) => {
+            const TaskIcon = iconMap[task.category] || iconMap['All'];
+            return (
+              <motion.div
+                key={task.$id}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.05 }}
+                className="gaming-card p-4 flex flex-col items-center text-center gap-3 group hover:bg-slate-50 transition-all cursor-pointer border border-slate-100 shadow-sm"
               >
-                START
-              </button>
-            </motion.div>
-          );
-        })}
+                <div className="w-16 h-16 rounded-2xl bg-brand-purple/5 flex items-center justify-center border border-brand-purple/10 shadow-inner group-hover:border-brand-purple/30 transition-all">
+                  <TaskIcon className="w-8 h-8 text-brand-purple" />
+                </div>
+                
+                <div className="flex flex-col gap-1 min-h-[40px] justify-center">
+                  <h4 className="font-black text-xs text-slate-900 leading-tight">{task.title}</h4>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">{task.category}</p>
+                </div>
+
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-brand-purple/5 border border-brand-purple/10 w-full justify-center">
+                  <CoinIcon size={14} />
+                  <span className="font-display font-bold text-sm text-brand-purple">{task.reward}</span>
+                </div>
+                
+                <button 
+                  onClick={() => handleStartTask(task)}
+                  className="w-full py-2 bg-brand-purple text-white text-[10px] font-black uppercase rounded-lg shadow-lg hover:bg-brand-purple/90 transition-all"
+                >
+                  START
+                </button>
+              </motion.div>
+            );
+          })
+        )}
       </div>
     </motion.div>
   );

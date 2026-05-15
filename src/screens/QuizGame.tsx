@@ -32,7 +32,7 @@ export const QuizGame = () => {
       setLoading(true);
       try {
         const allQuizzes = await apiService.getQuizzes();
-        const found = allQuizzes.find((q: any) => q.id === id);
+        const found = allQuizzes.find((q: any) => q.$id === id);
         if (found) {
           setQuizData(found);
           setQuestions(found.questions || []);

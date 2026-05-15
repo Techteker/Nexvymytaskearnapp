@@ -6,6 +6,7 @@ import { Gift, Lock, Check } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { apiService } from '../services/api';
 
 const DAYS = [
   { day: 1, reward: 100, status: 'claimed' },
@@ -28,11 +29,8 @@ export const DailyGift = () => {
 
   const fetchStatus = async () => {
     try {
-      const res = await fetch('/api/user/daily-gift/status', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
-      const data = await res.json();
-      setStatus(data);
+      const data = await apiService.getDailyGiftStatus();
+      setStatus(data as any);
     } catch (e) {}
   };
 
@@ -44,15 +42,8 @@ export const DailyGift = () => {
     if (!status.isClaimable) return showToast('You already claimed today!', 'error');
     setLoading(true);
     try {
-      const res = await fetch('/api/user/daily-gift', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Claim failed');
+      const data = await apiService.claimDailyGift();
+      if (data.error) throw new Error(data.error);
 
       confetti({
         particleCount: 150,
@@ -85,42 +76,44 @@ export const DailyGift = () => {
       animate={{ opacity: 1, y: 0 }}
       className="flex flex-col gap-6"
     >
-      <TopBar />
-
       <div className="flex items-center gap-4 mb-6">
-        <div className="flex-1 h-[2px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-        <h2 className="text-sm font-black uppercase tracking-widest text-white/60">Daily Check-in</h2>
-        <div className="flex-1 h-[2px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+        <div className="flex-1 h-[2px] bg-gradient-to-r from-transparent via-brand-purple/10 to-transparent" />
+        <h2 className="text-sm font-black uppercase tracking-widest text-brand-purple/40">Daily Check-in</h2>
+        <div className="flex-1 h-[2px] bg-gradient-to-r from-transparent via-brand-purple/10 to-transparent" />
       </div>
 
       <div className="grid grid-cols-3 gap-3">
         {items.map((item) => (
           <div 
             key={item.day}
-            className={`gaming-card p-2 flex flex-col items-center gap-2 relative transition-all min-h-[100px] justify-center ${
-              item.status === 'claimed' ? 'bg-blue-900/40 opacity-60' : 
-              item.status === 'next' ? 'bg-blue-600/40 border-white/40 border-2' :
-              'bg-blue-800/20'
+            className={`p-2 flex flex-col items-center gap-2 relative transition-all min-h-[100px] justify-center rounded-[24px] border ${
+              item.status === 'claimed' ? 'bg-slate-50 border-slate-100 opacity-60' : 
+              item.status === 'next' ? 'bg-brand-purple/10 border-brand-purple border-2 shadow-[0_0_20px_rgba(124,58,237,0.1)]' :
+              'bg-white border-slate-100'
             }`}
           >
-             <p className="text-[10px] font-black uppercase text-white/80 bg-blue-500/30 px-3 py-1 rounded-full">Day {item.day}</p>
+             <p className={`text-[10px] font-black uppercase px-3 py-1 rounded-full ${
+               item.status === 'claimed' ? 'text-slate-400 bg-slate-100' :
+               item.status === 'next' ? 'text-brand-purple bg-brand-purple/10' :
+               'text-slate-400 bg-slate-50'
+             }`}>Day {item.day}</p>
             <div className="relative p-1">
               <CoinIcon size={24} />
               {item.status === 'claimed' && (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="bg-green-500 rounded-full p-0.5 border-2 border-gaming-blue-900 shadow-lg">
+                  <div className="bg-green-500 rounded-full p-0.5 border-2 border-white shadow-lg">
                     <Check className="w-3 h-3 text-white" />
                   </div>
                 </div>
               )}
             </div>
-            <p className="font-display font-black text-white text-xs">+{item.reward}</p>
+            <p className={`font-display font-black text-xs ${item.status === 'claimed' ? 'text-slate-400' : 'text-slate-900'}`}>+{item.reward}</p>
           </div>
         ))}
       </div>
 
       {/* Big Day 7 Reward */}
-      <div className="gaming-card p-6 bg-blue-800/30 border-blue-400/20 flex items-center justify-between group cursor-pointer hover:bg-blue-700/40 transition-all">
+      <div className="p-6 bg-gradient-to-r from-brand-purple to-violet-800 rounded-[32px] flex items-center justify-between group cursor-pointer shadow-xl transition-all hover:scale-[1.02]">
         <div className="flex flex-col">
             <span className="text-[10px] font-black uppercase text-white/50 mb-1">Final Prize</span>
             <h3 className="text-2xl font-display font-black text-white">Day 7</h3>
@@ -128,20 +121,20 @@ export const DailyGift = () => {
         <div className="flex items-center gap-4">
              <div className="relative">
                 <CoinIcon size={56} className="drop-shadow-2xl" />
-                <div className="absolute -top-1 -right-1 bg-orange-500 text-[10px] px-2 py-0.5 rounded-full font-black animate-bounce">+1000</div>
+                <div className="absolute -top-1 -right-1 bg-orange-500 text-[10px] px-2 py-0.5 rounded-full font-black animate-bounce text-white shadow-lg">+1000</div>
              </div>
         </div>
       </div>
 
       <button
         onClick={claim}
-        className="w-full py-5 rounded-3xl bg-gaming-accent hover:bg-blue-500 text-white font-display font-black text-xl glow-blue transition-all active:scale-95 uppercase tracking-widest"
+        className="w-full py-5 rounded-3xl bg-brand-purple hover:bg-brand-purple/90 text-white font-display font-black text-xl shadow-[0_10px_25px_rgba(124,58,237,0.3)] transition-all active:scale-95 uppercase tracking-widest"
       >
         Claim Today's Gift
       </button>
 
       <div className="text-center">
-        <p className="text-xs text-white/40 font-bold uppercase">Next reset in <span className="text-gaming-accent">04:22:15</span></p>
+        <p className="text-xs text-slate-400 font-bold uppercase">Next reset in <span className="text-brand-purple font-black">04:22:15</span></p>
       </div>
     </motion.div>
   );

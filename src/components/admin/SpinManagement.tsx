@@ -107,7 +107,9 @@ export const SpinManagement: React.FC = () => {
                           <input 
                             type="number" 
                             value={reward.probability} 
+                            onChange={() => {}}
                             className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm"
+                            readOnly
                           />
                           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 text-xs">%</span>
                         </div>

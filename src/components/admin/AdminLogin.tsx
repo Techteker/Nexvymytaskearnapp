@@ -1,24 +1,21 @@
 import React, { useState } from 'react';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { auth, db } from '../../lib/firebase';
 import { useNavigate } from 'react-router-dom';
-import { adminService } from '../../services/adminService';
+import { apiService } from '../../services/api';
 import { LogIn, ShieldCheck, Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { UserRole } from '../../types';
+
+import { useAuth } from '../../context/AuthContext';
 
 export const AdminLogin: React.FC = () => {
   const [email, setEmail] = useState('ranarajendar999@gmail.com');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [setupMode, setSetupMode] = useState(false);
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth || !db) return;
     setLoading(true);
     setError(null);
 
@@ -31,62 +28,14 @@ export const AdminLogin: React.FC = () => {
         return;
       }
 
-      // 1. Initial login attempt
-      let userCredential;
-      try {
-        userCredential = await signInWithEmailAndPassword(auth, email, password);
-      } catch (err: any) {
-        // If user doesn't exist and it's the default admin email, try to register
-        // User provided the password @Rajendar022 in the latest prompt
-        if (err.code === 'auth/user-not-found' && authorizedEmails.includes(email) && (password === '@Rajendar022' || password === '@Rajendar02')) {
-          userCredential = await createUserWithEmailAndPassword(auth, email, password);
-          setSetupMode(true);
-        } else {
-          throw err;
-        }
-      }
-
-      const uid = userCredential.user.uid;
-
-      // 2. Role Check
-      const adminDocRef = doc(db, 'admins', uid);
-      const adminSnap = await getDoc(adminDocRef);
-
-      if (!adminSnap.exists()) {
-        // Create admin role ONLY for the authorized email
-        if (authorizedEmails.includes(email)) {
-          await setDoc(adminDocRef, {
-            email: email,
-            role: UserRole.SUPER_ADMIN,
-            isSuperAdmin: true,
-            createdAt: serverTimestamp()
-          });
-          
-          // Also create user doc if missing
-          const userDocRef = doc(db, 'users', uid);
-          const userSnap = await getDoc(userDocRef);
-          if (!userSnap.exists()) {
-            await setDoc(userDocRef, {
-              username: 'Super Admin',
-              email: email,
-              coins: 999999,
-              level: 100,
-              isBanned: false,
-              role: UserRole.SUPER_ADMIN,
-              createdAt: serverTimestamp()
-            });
-          }
-        } else {
-          setError('Access denied. Unrecognized admin authorization.');
-          setLoading(false);
-          return;
-        }
-      }
-
-      // 3. Activity Log
-      await adminService.logAction(uid, 'ADMIN_LOGIN', `Super Admin logged in successfully.`);
-
-      navigate('/admin');
+      const res = await apiService.login({ email, password });
+      if (res.error) throw new Error(res.error);
+      
+      localStorage.setItem('token', res.token);
+      console.log('[ADMIN AUTH] Login success, refreshing context...');
+      await refreshUser();
+      console.log('[ADMIN AUTH] Context refreshed, navigating to /admin');
+      navigate('/admin', { replace: true });
     } catch (err: any) {
       console.error(err);
       setError(err.message || 'Authentication failed');
@@ -106,12 +55,12 @@ export const AdminLogin: React.FC = () => {
         <div className="absolute -top-24 -right-24 w-48 h-48 bg-purple-600/20 rounded-full blur-3xl"></div>
         <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-blue-600/20 rounded-full blur-3xl"></div>
 
-        <div className="relative text-center mb-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-purple-600/20 rounded-2.5xl mb-6 ring-1 ring-purple-500/30">
-            <ShieldCheck className="text-purple-400" size={40} />
+          <div className="relative text-center mb-10">
+          <div className="inline-flex items-center justify-center w-24 h-24 bg-white rounded-full mb-6 ring-1 ring-slate-800 shadow-lg border-2 border-white/20 overflow-hidden">
+            <img src="/input_file_0.png" alt="Nexvy Logo" className="w-full h-full object-contain" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">RJ ACCESS PANEL</h1>
-          <p className="text-slate-400">Secure entry for RJ Administrators</p>
+          <h1 className="text-3xl font-bold text-white mb-2 tracking-tight uppercase">Dashboard Access</h1>
+          <p className="text-slate-400 uppercase text-[10px] font-black tracking-widest">Internal Security Portal</p>
         </div>
 
         {error && (
@@ -166,14 +115,14 @@ export const AdminLogin: React.FC = () => {
             ) : (
               <>
                 <LogIn size={22} className="group-hover:translate-x-1 transition-transform" />
-                LOGIN RJ
+                LOGIN
               </>
             )}
           </button>
         </form>
 
-        <div className="mt-8 text-center text-slate-500 text-sm">
-          <p>© 2026 RJ Earning Platform. Internal use only.</p>
+        <div className="mt-8 text-center text-slate-500 text-sm italic font-medium">
+          <p>© 2026 Nexvy Platform. Confidentiality Required.</p>
         </div>
       </motion.div>
     </div>

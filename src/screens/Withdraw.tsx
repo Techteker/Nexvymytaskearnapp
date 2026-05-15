@@ -6,6 +6,8 @@ import { CoinIcon } from '../components/CoinIcon';
 import { useAuth } from '../context/AuthContext';
 import { apiService } from '../services/api';
 import { useToast } from '../context/ToastContext';
+import { EARNING_CONFIG } from '../constants';
+import { cn } from '../lib/utils';
 
 const methods = [
   { id: 'paytm', name: 'Paytm', icon: Smartphone, color: 'bg-blue-500' },
@@ -37,7 +39,7 @@ export const Withdraw = () => {
     loadData();
   }, []);
 
-  const minWithdrawalValue = settings?.minWithdrawal || 1000;
+  const minWithdrawalValue = EARNING_CONFIG.MIN_WITHDRAWAL_COINS;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,26 +75,26 @@ export const Withdraw = () => {
       animate={{ opacity: 1, scale: 1 }}
       className="flex flex-col gap-6"
     >
-      <div className="gaming-card p-6 bg-gradient-to-br from-gaming-blue-800 to-gaming-blue-900 border-gaming-accent/30 relative overflow-hidden">
+      <div className="gaming-card p-6 bg-gradient-to-br from-brand-purple to-violet-800 border-none relative overflow-hidden shadow-xl">
         <div className="flex justify-between items-center relative z-10">
           <div>
-            <p className="text-xs text-white/40 font-bold uppercase mb-1">Withdrawable Balance</p>
+            <p className="text-xs text-white/60 font-bold uppercase mb-1">Withdrawable Balance</p>
             <div className="flex items-center gap-2">
               <CoinIcon size={24} />
               <h2 className="text-3xl font-display font-black text-white">{user?.coins.toLocaleString() || '0'}</h2>
             </div>
-            <p className="text-[10px] text-gaming-accent font-bold mt-1">≈ ${(user?.coins ? (user.coins / 10000).toFixed(2) : '0.00')} USD</p>
+            <p className="text-[10px] text-yellow-300 font-bold mt-1">≈ ${user?.coins ? (user.coins / EARNING_CONFIG.COINS_PER_USD).toFixed(2) : '0.00'} USD</p>
           </div>
-          <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
-             <Wallet className="w-8 h-8 text-white/20" />
+          <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center border border-white/20 backdrop-blur-sm">
+             <Wallet className="w-8 h-8 text-white" />
           </div>
         </div>
       </div>
 
       <div className="flex items-center gap-4 mb-2">
-        <div className="flex-1 h-[2px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-        <h2 className="text-sm font-black uppercase tracking-widest text-white/60">Withdraw Options</h2>
-        <div className="flex-1 h-[2px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+        <div className="flex-1 h-[2px] bg-gradient-to-r from-transparent via-brand-purple/10 to-transparent" />
+        <h2 className="text-sm font-black uppercase tracking-widest text-brand-purple/40">Withdraw Options</h2>
+        <div className="flex-1 h-[2px] bg-gradient-to-r from-transparent via-brand-purple/10 to-transparent" />
       </div>
 
       <div className="grid grid-cols-3 gap-3">
@@ -100,16 +102,16 @@ export const Withdraw = () => {
           <button
             key={method.id}
             onClick={() => setSelected(method.id)}
-            className={`gaming-card p-3 flex flex-col items-center gap-3 transition-all min-h-[100px] justify-center ${
+            className={`flex flex-col items-center gap-3 transition-all min-h-[100px] justify-center rounded-[24px] border border-slate-100 ${
               selected === method.id 
-              ? 'bg-blue-600/40 border-white/60 border-2' 
-              : 'bg-blue-800/20'
+              ? 'bg-brand-purple/10 border-brand-purple border-2 shadow-lg scale-105' 
+              : 'bg-white'
             }`}
           >
-            <div className={`p-2 rounded-xl ${method.color} shadow-lg`}>
+            <div className={`p-2 rounded-xl ${method.color} shadow-lg shadow-black/10`}>
               <method.icon className="w-8 h-8 text-white" />
             </div>
-            <span className="font-black text-[10px] tracking-tight uppercase">{method.name}</span>
+            <span className={cn("font-black text-[10px] tracking-tight uppercase", selected === method.id ? "text-brand-purple" : "text-slate-400")}>{method.name}</span>
           </button>
         ))}
       </div>
@@ -121,60 +123,60 @@ export const Withdraw = () => {
                 placeholder={`Enter ${selected === 'paytm' ? 'Paytm' : selected === 'phonepe' ? 'PhonePe' : 'PayPal'} Number...`}
                 value={details}
                 onChange={(e) => setDetails(e.target.value)}
-                className="w-full bg-blue-800/40 border border-white/20 rounded-2xl py-5 px-6 font-bold text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors"
+                className="w-full bg-white border border-slate-200 rounded-2xl py-5 px-6 font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none focus:border-brand-purple focus:ring-1 focus:ring-brand-purple/20 transition-all shadow-sm"
                 required
             />
         </div>
         <div className="flex flex-col gap-2">
             <input 
                 type="number" 
-                placeholder="50,000"
+                placeholder={EARNING_CONFIG.MIN_WITHDRAWAL_COINS.toLocaleString()}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-full bg-blue-800/40 border border-white/20 rounded-2xl py-5 px-6 font-bold text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors"
+                className="w-full bg-white border border-slate-200 rounded-2xl py-5 px-6 font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none focus:border-brand-purple focus:ring-1 focus:ring-brand-purple/20 transition-all shadow-sm"
                 required
             />
-            <p className="text-[10px] text-white/50 text-center font-bold mt-2">
-              *Minimum withdrawal is {minWithdrawalValue.toLocaleString()} coins
+            <p className="text-[10px] text-slate-400 text-center font-bold mt-2 uppercase tracking-widest">
+              *Minimum withdrawal is {EARNING_CONFIG.MIN_WITHDRAWAL_COINS.toLocaleString()} coins (${EARNING_CONFIG.MIN_WITHDRAWAL_USD})
             </p>
         </div>
 
         <button 
            type="submit"
            disabled={loading}
-           className="gaming-button-yellow w-full py-5 text-2xl tracking-widest mt-4 uppercase"
+           className="gaming-button-yellow w-full py-5 text-2xl tracking-widest mt-4 uppercase shadow-xl"
         >
-            {loading ? '...' : 'SUBMIT'}
+            {loading ? '...' : 'SUBMIT REQUEST'}
         </button>
       </form>
 
       {/* History */}
       <div>
-         <div className="flex items-center justify-between mb-4">
-            <h3 className="font-display font-bold text-lg">Recent Payouts</h3>
-            <History className="w-4 h-4 text-white/20" />
+         <div className="flex items-center justify-between mb-4 px-2">
+            <h3 className="font-display font-black text-lg text-brand-purple uppercase italic">Recent Payouts</h3>
+            <History className="w-4 h-4 text-slate-200" />
          </div>
          <div className="flex flex-col gap-3">
             {withdrawals.slice(0, 10).map((item, i) => (
-                <div key={i} className="gaming-card p-4 flex items-center justify-between">
+                <div key={i} className="gaming-card p-4 flex items-center justify-between shadow-sm border border-slate-50">
                     <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">
-                            <Wallet className="w-5 h-5 text-white/40" />
+                        <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
+                            <Wallet className="w-5 h-5 text-slate-400" />
                         </div>
                         <div>
-                            <h4 className="text-sm font-bold capitalize">{item.method} Payout</h4>
-                            <p className="text-[10px] text-white/40">{new Date(item.createdAt).toLocaleDateString()}</p>
+                            <h4 className="text-sm font-black text-slate-800 capitalize">{item.method} Payout</h4>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase">{new Date(item.createdAt).toLocaleDateString()}</p>
                         </div>
                     </div>
                     <div className="text-right">
                         <div className="flex items-center gap-1 justify-end">
                             <CoinIcon size={14} />
-                            <span className="font-bold text-sm text-white">-{item.amount}</span>
+                            <span className="font-black text-sm text-slate-900">-{item.amount}</span>
                         </div>
                         <div className={`flex items-center gap-1 mt-1 ${
-                          item.status === 'successful' ? 'text-green-500' :
-                          item.status === 'pending' ? 'text-yellow-500' :
-                          item.status === 'processing' ? 'text-blue-500' : 'text-red-500'
+                          item.status === 'successful' ? 'text-green-600' :
+                          item.status === 'pending' ? 'text-orange-500' :
+                          item.status === 'processing' ? 'text-brand-purple' : 'text-red-600'
                         }`}>
                             <span className="text-[10px] font-black uppercase tracking-tighter">{item.status}</span>
                         </div>
@@ -182,7 +184,7 @@ export const Withdraw = () => {
                 </div>
             ))}
             {withdrawals.length === 0 && (
-              <div className="text-center py-8 text-white/20 font-bold uppercase text-[10px] tracking-widest">
+              <div className="text-center py-8 text-slate-300 font-black uppercase text-[10px] tracking-widest">
                 No withdrawal history
               </div>
             )}

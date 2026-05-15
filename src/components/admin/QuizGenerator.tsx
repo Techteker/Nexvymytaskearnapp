@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { geminiService } from '../../services/geminiService';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
 import { 
   BrainCircuit, 
   Sparkles, 
@@ -14,11 +12,17 @@ import {
   Settings2,
   Globe,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  ArrowLeft
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { adminService } from '../../services/adminService';
 
-export const QuizGenerator: React.FC = () => {
+interface QuizGeneratorProps {
+    onSave?: () => void;
+}
+
+export const QuizGenerator: React.FC<QuizGeneratorProps> = ({ onSave }) => {
   const [topic, setTopic] = useState('');
   const [count, setCount] = useState(5);
   const [difficulty, setDifficulty] = useState('medium');
@@ -49,19 +53,21 @@ export const QuizGenerator: React.FC = () => {
   };
 
   const saveToDatabase = async () => {
-    if (!db || !quizList) return;
+    if (!quizList) return;
     setLoading(true);
     try {
-      await addDoc(collection(db, 'quiz'), {
+      const quizData = {
         topic,
         difficulty,
         language,
-        questions: quizList,
+        questions: JSON.stringify(quizList),
         rewardCoins: reward,
         timer: timer,
-        createdAt: serverTimestamp()
-      });
+      };
+
+      await adminService.createQuiz(quizData);
       setSaved(true);
+      if (onSave) setTimeout(onSave, 1500);
     } catch (err: any) {
       setError(err.message || 'Failed to save quiz');
     } finally {

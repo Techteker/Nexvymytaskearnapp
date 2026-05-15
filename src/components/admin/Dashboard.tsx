@@ -1,235 +1,233 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { adminService } from '../../services/adminService';
 import { 
   Users, 
-  TrendingUp, 
-  CheckCircle, 
-  Clock, 
-  DollarSign, 
-  Gamepad2, 
-  Wallet, 
-  Activity,
-  ArrowUpRight,
-  ArrowDownRight
+  Target, 
+  CreditCard, 
+  Activity, 
+  Zap, 
+  ArrowUpRight, 
+  ShieldCheck, 
+  Cpu, 
+  History,
+  Bell,
+  ArrowRight
 } from 'lucide-react';
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  BarChart,
-  Bar
-} from 'recharts';
 import { motion } from 'motion/react';
-
-const chartData = [
-  { name: 'Mon', users: 400, tasks: 240 },
-  { name: 'Tue', users: 300, tasks: 139 },
-  { name: 'Wed', users: 900, tasks: 980 },
-  { name: 'Thu', users: 700, tasks: 390 },
-  { name: 'Fri', users: 1200, tasks: 480 },
-  { name: 'Sat', users: 1500, tasks: 800 },
-  { name: 'Sun', users: 1300, tasks: 700 },
-];
-
-const revenueData = [
-  { name: 'Jan', revenue: 4000 },
-  { name: 'Feb', revenue: 3000 },
-  { name: 'Mar', revenue: 5000 },
-  { name: 'Apr', revenue: 4500 },
-  { name: 'May', revenue: 6000 },
-  { name: 'Jun', revenue: 8000 },
-];
+import { Link } from 'react-router-dom';
 
 export const Dashboard: React.FC = () => {
   const [stats, setStats] = useState<any>(null);
-  const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const [statsData, logsData] = await Promise.all([
-        adminService.getDashboardStats(),
-        adminService.getLogs(10)
-      ]);
-      setStats(statsData);
-      setLogs(logsData);
-      setLoading(false);
-    };
-    fetchData();
+    loadStats();
   }, []);
 
-  const statCards = [
-    { label: 'Total Users', value: stats?.totalUsers || 0, icon: Users, color: 'bg-blue-500', trend: '+12.5%' },
-    { label: 'Total Tasks', value: stats?.totalTasks || 0, icon: CheckCircle, color: 'bg-emerald-500', trend: '+5.2%' },
-    { label: 'Pending Submissions', value: stats?.pendingTasks || 0, icon: Clock, color: 'bg-amber-500', trend: '-2.1%' },
-    { label: 'Total Revenue', value: `$${stats?.totalRevenue?.toLocaleString() || 0}`, icon: DollarSign, color: 'bg-purple-500', trend: '+18.7%' },
-    { label: 'Pending Withdrawals', value: stats?.pendingWithdrawals || 0, icon: Wallet, color: 'bg-rose-500', trend: '0.0%' },
-    { label: 'Daily Traffic', value: stats?.dailyTraffic || 0, icon: Activity, color: 'bg-indigo-500', trend: '+7.4%' },
+  const loadStats = async () => {
+    setLoading(true);
+    const data = await adminService.getDashboardStats();
+    setStats(data);
+    setLoading(false);
+  };
+
+  const dashboardCards = [
+    { 
+      label: 'Network Force', 
+      value: stats?.totalUsers || 0, 
+      sub: 'Operatives Level Alpha', 
+      icon: Users, 
+      color: 'blue',
+      path: '/admin/users'
+    },
+    { 
+      label: 'Mission Deployments', 
+      value: (stats?.totalEarnings / 100) || 0, 
+      sub: 'Successful Executions', 
+      icon: Target, 
+      color: 'purple',
+      path: '/admin/tasks'
+    },
+    { 
+      label: 'Vault Liquidity', 
+      value: stats?.totalWithdrawals || 0, 
+      sub: 'Allocated Assets', 
+      icon: CreditCard, 
+      color: 'emerald',
+      path: '/admin/withdrawals'
+    },
+    { 
+      label: 'Protocol Pending', 
+      value: stats?.pendingWithdrawals || 0, 
+      sub: 'Awaiting Authorization', 
+      icon: Activity, 
+      color: 'rose',
+      path: '/admin/submissions'
+    }
   ];
 
-  if (loading) return (
-    <div className="space-y-8 animate-pulse">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[1, 2, 3, 4, 5, 6].map(i => (
-          <div key={i} className="h-32 bg-slate-800/50 rounded-3xl border border-slate-700"></div>
-        ))}
-      </div>
-    </div>
-  );
-
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-white mb-2">Platform Overview</h1>
-        <p className="text-slate-400">Track your performance and manage Nexvy users in real-time.</p>
+    <div className="space-y-12 pb-20">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+        <div>
+           <div className="flex items-center gap-3 mb-2">
+              <div className="px-3 py-1 bg-purple-500/10 border border-purple-500/20 rounded-lg flex items-center gap-2">
+                 <span className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse" />
+                 <span className="text-[9px] font-black text-purple-500 uppercase tracking-widest">System Online</span>
+              </div>
+              <span className="text-slate-600 font-bold uppercase text-[9px] tracking-widest underline decoration-purple-500/50 underline-offset-4 font-mono">Nexvy_V4.0_Admin</span>
+           </div>
+           <h1 className="text-5xl font-black text-white italic tracking-tighter uppercase font-sans leading-none">Command Center</h1>
+        </div>
+        
+        <div className="flex gap-4">
+           <Link to="/admin/notifications" className="p-4 bg-white/[0.02] border border-white/5 text-slate-500 hover:text-white rounded-2xl transition-all shadow-xl">
+              <Bell size={24} />
+           </Link>
+           <button onClick={loadStats} className="px-8 py-4 bg-white/5 hover:bg-white/10 text-white font-black uppercase text-xs tracking-[0.2em] rounded-2xl transition-all border border-white/10 flex items-center gap-2">
+              <Zap size={18} className="text-purple-500" /> Refresh Grid
+           </button>
+        </div>
       </div>
 
-      {/* Stat Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {statCards.map((card, idx) => (
-          <motion.div
-            key={idx}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.1 }}
-            className="group p-6 bg-slate-900/40 backdrop-blur-md rounded-3xl border border-slate-800 hover:border-slate-700 transition-all shadow-xl"
-          >
-            <div className="flex justify-between items-start mb-4">
-              <div className={`${card.color} p-3 rounded-2xl shadow-lg ring-4 ring-white/5`}>
-                <card.icon className="text-white" size={24} />
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {Array(4).fill(0).map((_, i) => (
+            <div key={i} className="h-44 bg-white/[0.02] rounded-[3rem] border border-white/5 animate-pulse" />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {dashboardCards.map((card, i) => (
+            <motion.div
+              key={card.label}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              className="group relative p-8 bg-white/[0.01] border border-white/5 rounded-[3rem] hover:bg-white/[0.03] hover:border-white/10 transition-all cursor-pointer"
+            >
+              <Link to={card.path} className="absolute inset-0" />
+              <div className={`w-14 h-14 rounded-2.5xl bg-white/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500`}>
+                <card.icon size={24} className={`text-slate-400 group-hover:text-white transition-colors`} />
               </div>
-              <div className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg ${
-                card.trend.startsWith('+') ? 'bg-emerald-500/10 text-emerald-400' : 
-                card.trend === '0.0%' ? 'bg-slate-500/10 text-slate-400' : 'bg-rose-500/10 text-rose-400'
-              }`}>
-                {card.trend.startsWith('+') ? <ArrowUpRight size={14} /> : card.trend.startsWith('-') ? <ArrowDownRight size={14} /> : null}
-                {card.trend}
+              <div className="space-y-1">
+                <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] italic">{card.label}</p>
+                <p className="text-4xl font-black text-white italic tracking-tighter tabular-nums">{card.value.toLocaleString()}</p>
+                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{card.sub}</p>
               </div>
+              <div className="absolute top-8 right-8 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
+                 <ArrowUpRight size={20} className="text-white/20" />
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+         {/* System Status Visualizer */}
+         <div className="lg:col-span-8 bg-white/[0.01] border border-white/5 rounded-[4rem] p-12 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-12 opacity-[0.02] group-hover:scale-110 transition-transform duration-1000">
+               <Cpu size={240} />
             </div>
+            
+            <div className="flex items-center justify-between mb-12">
+               <div>
+                  <h3 className="text-3xl font-black text-white italic tracking-tighter uppercase">Protocol Status</h3>
+                  <p className="text-slate-500 text-[9px] font-bold uppercase tracking-widest mt-1">Real-time operational distribution logs</p>
+               </div>
+               <div className="flex items-center gap-2">
+                  <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 flex items-center justify-center">
+                     <ShieldCheck className="text-emerald-500 animate-pulse" size={24} />
+                  </div>
+               </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
+               <div className="space-y-6">
+                  <div className="space-y-2">
+                     <div className="flex justify-between text-[10px] font-black uppercase italic tracking-widest">
+                        <span className="text-slate-500">Asset Flow Velocity</span>
+                        <span className="text-white">82% Capacity</span>
+                     </div>
+                     <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: '82%' }}
+                          transition={{ duration: 1.5, ease: 'easeOut' }}
+                          className="h-full bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full shadow-[0_0_12px_rgba(147,51,234,0.5)]" 
+                        />
+                     </div>
+                  </div>
+                  <div className="space-y-2">
+                     <div className="flex justify-between text-[10px] font-black uppercase italic tracking-widest">
+                        <span className="text-slate-500">Operative Growth</span>
+                        <span className="text-blue-500">+14.2% Increase</span>
+                     </div>
+                     <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: '64%' }}
+                          transition={{ duration: 1.5, ease: 'easeOut', delay: 0.2 }}
+                          className="h-full bg-blue-600 rounded-full shadow-[0_0_12px_rgba(37,99,235,0.5)]" 
+                        />
+                     </div>
+                  </div>
+               </div>
+
+               <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white/5 rounded-3xl p-6 border border-white/5 hover:bg-white/[0.08] transition-all group/stat">
+                     <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1 italic">Active Rank</p>
+                     <p className="text-2xl font-black text-white italic tracking-tighter">Elite_IV</p>
+                     <ArrowRight size={14} className="text-slate-700 mt-2 group-hover/stat:translate-x-1 transition-transform" />
+                  </div>
+                  <div className="bg-white/5 rounded-3xl p-6 border border-white/5 hover:bg-white/[0.08] transition-all group/stat">
+                     <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1 italic">Interference</p>
+                     <p className="text-2xl font-black text-rose-500 italic tracking-tighter">0.02%</p>
+                     <ArrowRight size={14} className="text-slate-700 mt-2 group-hover/stat:translate-x-1 transition-transform" />
+                  </div>
+               </div>
+            </div>
+         </div>
+
+         {/* Quick Actions / Shortcuts */}
+         <div className="lg:col-span-4 bg-white/[0.01] border border-white/5 rounded-[4rem] p-12 flex flex-col justify-between">
             <div>
-              <p className="text-slate-400 text-sm font-medium mb-1">{card.label}</p>
-              <h3 className="text-2xl font-bold text-white tracking-tight">{card.value}</h3>
+               <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase mb-2">Protocol Access</h3>
+               <p className="text-slate-500 text-[9px] font-bold uppercase tracking-widest italic font-mono">Immediate Command Entry</p>
             </div>
-          </motion.div>
-        ))}
-      </div>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="p-8 bg-slate-900/40 backdrop-blur-md rounded-3xl border border-slate-800 shadow-xl">
-          <div className="flex items-center justify-between mb-8">
-             <div>
-               <h3 className="text-lg font-bold text-white">Platform Activity</h3>
-               <p className="text-sm text-slate-500">Users vs Task completions trend</p>
-             </div>
-             <div className="flex items-center gap-4 text-xs font-medium">
-               <div className="flex items-center gap-2">
-                 <div className="w-3 h-3 bg-purple-500 rounded-full shadow-[0_0_10px_#a855f7]"></div>
-                 <span className="text-slate-400">Users</span>
-               </div>
-               <div className="flex items-center gap-2">
-                 <div className="w-3 h-3 bg-blue-500 rounded-full shadow-[0_0_10px_#3b82f6]"></div>
-                 <span className="text-slate-400">Tasks</span>
-               </div>
-             </div>
-          </div>
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#a855f7" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="colorTasks" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
-                <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px' }}
-                  itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
-                />
-                <Area type="monotone" dataKey="users" stroke="#a855f7" strokeWidth={3} fillOpacity={1} fill="url(#colorUsers)" />
-                <Area type="monotone" dataKey="tasks" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorTasks)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div className="p-8 bg-slate-900/40 backdrop-blur-md rounded-3xl border border-slate-800 shadow-xl">
-           <div className="flex items-center justify-between mb-8">
-             <div>
-               <h3 className="text-lg font-bold text-white">Revenue Analytics</h3>
-               <p className="text-sm text-slate-500">Monthly revenue growth (USD)</p>
-             </div>
-             <TrendingUp className="text-slate-500" />
-          </div>
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={revenueData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
-                <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                <Tooltip 
-                  cursor={{ fill: '#1e293b', opacity: 0.5 }}
-                  contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px' }}
-                />
-                <Bar dataKey="revenue" fill="#6366f1" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Activity Table (Live Logs) */}
-      <div className="bg-slate-900/40 backdrop-blur-md rounded-3xl border border-slate-800 shadow-xl overflow-hidden">
-        <div className="p-8 border-b border-slate-800 flex justify-between items-center">
-          <h3 className="text-xl font-bold text-white">Admin Activity Logs</h3>
-          <Link to="/admin/logs" className="text-purple-400 font-semibold text-sm hover:underline">View Full Audit Trail</Link>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-slate-800/50 bg-slate-800/20">
-                <th className="px-8 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Action</th>
-                <th className="px-8 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Details</th>
-                <th className="px-8 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Time</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/50">
-              {logs.slice(0, 5).map((log, i) => (
-                <tr key={i} className="hover:bg-slate-800/20 transition-colors">
-                  <td className="px-8 py-5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400">
-                        <Activity size={14} />
-                      </div>
-                      <span className="font-semibold text-slate-200">{log.action}</span>
+            <div className="space-y-4 my-8">
+               {[
+                 { label: 'New Mission', icon: Target, path: '/admin/tasks' },
+                 { label: 'Verify Logs', icon: History, path: '/admin/submissions' },
+                 { label: 'Signal Broadcast', icon: Bell, path: '/admin/notifications' }
+               ].map((action) => (
+                 <Link 
+                   key={action.label}
+                   to={action.path}
+                   className="flex items-center justify-between p-5 bg-white/5 hover:bg-white/[0.08] border border-white/5 rounded-2xl transition-all group"
+                 >
+                    <div className="flex items-center gap-4">
+                       <div className="p-2 bg-slate-900 rounded-xl group-hover:scale-110 transition-transform">
+                          <action.icon size={18} className="text-slate-400 group-hover:text-white" />
+                       </div>
+                       <span className="text-sm font-black uppercase text-slate-300 group-hover:text-white italic tracking-tight">{action.label}</span>
                     </div>
-                  </td>
-                  <td className="px-8 py-5 text-slate-400 text-sm">{log.details}</td>
-                  <td className="px-8 py-5 text-slate-500 text-xs text-right italic">
-                     {log.timestamp ? new Date(log.timestamp).toLocaleTimeString() : 'Recently'}
-                  </td>
-                </tr>
-              ))}
-              {logs.length === 0 && (
-                <tr>
-                   <td colSpan={3} className="px-8 py-10 text-center text-slate-500">No recent activity detected.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                    <ArrowRight size={16} className="text-slate-700 group-hover:translate-x-1 transition-transform" />
+                 </Link>
+               ))}
+            </div>
+
+            <div className="p-6 bg-purple-600/10 border border-purple-500/20 rounded-[2rem] flex items-center justify-between">
+               <div className="flex flex-col">
+                  <p className="text-[8px] font-black text-purple-400 uppercase tracking-widest italic">System Utilization</p>
+                  <p className="text-xl font-black text-white italic tracking-tighter">98.4% Optimal</p>
+               </div>
+               <div className="w-10 h-10 bg-purple-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-purple-500/20">
+                  <Zap size={20} />
+               </div>
+            </div>
+         </div>
       </div>
     </div>
   );

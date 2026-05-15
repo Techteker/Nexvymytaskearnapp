@@ -5,6 +5,8 @@ import { CoinIcon } from '../components/CoinIcon';
 import { Trophy, Crown, Search, TrendingUp, TrendingDown, Minus, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { SEO } from '../components/SEO';
+import { apiService } from '../services/api';
+import { EARNING_CONFIG } from '../constants';
 
 const RankIndicator = ({ change }: { change: string }) => {
   if (change === 'up') return <TrendingUp className="w-3 h-3 text-green-500" />;
@@ -19,14 +21,14 @@ export const Leaderboard = () => {
   const { user: currentUser } = useAuth();
 
   React.useEffect(() => {
-    const fetchLeaderboard = () => {
-      fetch('/api/leaderboard')
-        .then(res => res.json())
-        .then(data => {
-          setLeaderboardUsers(data);
-          setLoading(false);
-        })
-        .catch(() => setLoading(false));
+    const fetchLeaderboard = async () => {
+      try {
+        const data = await apiService.getLeaderboard();
+        setLeaderboardUsers(data as any);
+        setLoading(false);
+      } catch (e) {
+        setLoading(false);
+      }
     };
 
     fetchLeaderboard();
@@ -53,14 +55,14 @@ export const Leaderboard = () => {
         <div className="sticky top-0 z-20 pt-2 pb-4 mesh-gradient">
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-display font-black italic tracking-tighter">LEADERBOARD</h2>
-              <div className="flex items-center gap-2 bg-blue-900/60 p-1 rounded-xl border border-white/10">
+              <h2 className="text-2xl font-display font-black italic tracking-tighter text-brand-purple uppercase">LEADERBOARD</h2>
+              <div className="flex items-center gap-2 bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
                 {['Daily', 'Weekly', 'All Time'].map((f) => (
                   <button
                     key={f}
                     onClick={() => setFilter(f)}
                     className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${
-                      filter === f ? 'bg-gaming-accent text-white shadow-lg' : 'text-white/40'
+                      filter === f ? 'bg-brand-purple text-white shadow-md' : 'text-slate-400'
                     }`}
                   >
                     {f}
@@ -70,11 +72,11 @@ export const Leaderboard = () => {
             </div>
 
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search user..."
-                className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-sm font-bold placeholder:text-white/20 focus:outline-none focus:border-gaming-accent transition-all"
+                className="w-full bg-white border border-slate-200 rounded-2xl py-3 pl-12 pr-4 text-sm font-bold placeholder:text-slate-300 focus:outline-none focus:border-brand-purple transition-all shadow-sm"
               />
             </div>
           </div>
@@ -87,19 +89,20 @@ export const Leaderboard = () => {
             {top3[1] && (
               <div className="flex flex-col items-center flex-1 max-w-[100px]">
                 <div className="relative mb-2">
-                  <div className="w-16 h-16 rounded-2xl bg-slate-400 p-0.5 border-2 border-slate-300">
-                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${top3[1].name}`} alt="" className="w-full h-full rounded-xl object-cover" />
+                  <div className="w-16 h-16 rounded-2xl bg-slate-100 p-0.5 border-2 border-slate-300 shadow-lg">
+                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${top3[1].username}`} alt="" className="w-full h-full rounded-xl object-cover" />
                   </div>
                   <div className="absolute -top-3 bg-slate-400 p-1 rounded-full border-2 border-slate-300 shadow-lg">
-                    <span className="text-[8px] font-black">2ND</span>
+                    <span className="text-[8px] font-black text-white">2ND</span>
                   </div>
                 </div>
-                <div className="w-full h-24 bg-gradient-to-t from-slate-600/40 to-slate-400/20 rounded-t-2xl border-t border-x border-white/10 flex flex-col items-center justify-center p-2 text-center">
-                   <span className="text-[10px] font-bold truncate w-full">{top3[1].name}</span>
+                <div className="w-full h-24 bg-white rounded-t-2xl border-t border-x border-slate-100 flex flex-col items-center justify-center p-2 text-center shadow-md">
+                   <span className="text-[10px] font-black truncate w-full text-slate-800">{top3[1].username}</span>
                    <div className="flex items-center gap-1 mt-1">
                       <CoinIcon size={12} />
-                      <span className="text-[10px] font-black">{top3[1].coins.toLocaleString()}</span>
+                      <span className="text-[10px] font-black text-slate-900">{top3[1].coins.toLocaleString()}</span>
                    </div>
+                   <span className="text-[8px] text-slate-400 font-bold mt-0.5 tracking-tighter uppercase whitespace-nowrap">(${((top3[1].coins || 0) / EARNING_CONFIG.COINS_PER_USD).toFixed(2)})</span>
                 </div>
               </div>
             )}
@@ -107,21 +110,22 @@ export const Leaderboard = () => {
             {/* Gold - Rank 1 */}
             <div className="flex flex-col items-center flex-1 max-w-[120px] -translate-y-4">
               <div className="relative mb-2">
-                <div className="w-20 h-20 rounded-2xl bg-yellow-400 p-0.5 border-2 border-yellow-200 shadow-[0_0_20px_rgba(251,191,36,0.3)]">
-                  <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${top3[0].name}`} alt="" className="w-full h-full rounded-xl object-cover" />
+                <div className="w-20 h-20 rounded-2xl bg-yellow-400 p-0.5 border-2 border-yellow-200 shadow-2xl">
+                  <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${top3[0].username}`} alt="" className="w-full h-full rounded-xl object-cover" />
                 </div>
                 <div className="absolute -top-6 left-1/2 -translate-x-1/2">
                   <Crown className="w-10 h-10 text-yellow-400 drop-shadow-lg animate-bounce" />
                 </div>
               </div>
-              <div className="w-full h-32 bg-gradient-to-t from-yellow-600/40 to-yellow-400/20 rounded-t-2xl border-t border-x border-yellow-400/30 flex flex-col items-center justify-center p-2 text-center shadow-[0_0_30px_rgba(251,191,36,0.1)]">
-                 <span className="text-xs font-black truncate w-full flex items-center justify-center gap-1">
-                   {top3[0].name} <CheckCircle2 className="w-3 h-3 text-blue-400 fill-blue-400/20" />
+              <div className="w-full h-32 bg-white rounded-t-2xl border-t border-x border-brand-purple/20 flex flex-col items-center justify-center p-2 text-center shadow-xl">
+                 <span className="text-xs font-black truncate w-full flex items-center justify-center gap-1 text-slate-800">
+                   {top3[0].username} <CheckCircle2 className="w-3 h-3 text-blue-500 fill-blue-500/10" />
                  </span>
                  <div className="flex items-center gap-1 mt-2">
                     <CoinIcon size={14} />
-                    <span className="text-sm font-black text-white">{top3[0].coins.toLocaleString()}</span>
+                    <span className="text-sm font-black text-slate-900">{top3[0].coins.toLocaleString()}</span>
                  </div>
+                 <span className="text-[9px] text-brand-purple font-black mt-0.5 tracking-tighter uppercase">(${( (top3[0].coins || 0) / EARNING_CONFIG.COINS_PER_USD).toFixed(2)})</span>
               </div>
             </div>
 
@@ -129,19 +133,20 @@ export const Leaderboard = () => {
             {top3[2] && (
               <div className="flex flex-col items-center flex-1 max-w-[100px]">
                 <div className="relative mb-2">
-                  <div className="w-16 h-16 rounded-2xl bg-orange-700 p-0.5 border-2 border-orange-500">
-                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${top3[2].name}`} alt="" className="w-full h-full rounded-xl object-cover" />
+                  <div className="w-16 h-16 rounded-2xl bg-orange-100 p-0.5 border-2 border-orange-300 shadow-lg">
+                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${top3[2].username}`} alt="" className="w-full h-full rounded-xl object-cover" />
                   </div>
                   <div className="absolute -top-3 bg-orange-700 p-1 rounded-full border-2 border-orange-500 shadow-lg">
-                    <span className="text-[8px] font-black">3RD</span>
+                    <span className="text-[8px] font-black text-white">3RD</span>
                   </div>
                 </div>
-                <div className="w-full h-20 bg-gradient-to-t from-orange-800/40 to-orange-700/20 rounded-t-2xl border-t border-x border-white/10 flex flex-col items-center justify-center p-2 text-center">
-                   <span className="text-[10px] font-bold truncate w-full">{top3[2].name}</span>
+                <div className="w-full h-20 bg-white rounded-t-2xl border-t border-x border-slate-100 flex flex-col items-center justify-center p-2 text-center shadow-md">
+                   <span className="text-[10px] font-black truncate w-full text-slate-800">{top3[2].username}</span>
                    <div className="flex items-center gap-1 mt-1">
                       <CoinIcon size={12} />
-                      <span className="text-[10px] font-black">{top3[2].coins.toLocaleString()}</span>
+                      <span className="text-[10px] font-black text-slate-900">{top3[2].coins.toLocaleString()}</span>
                    </div>
+                   <span className="text-[8px] text-slate-400 font-bold mt-0.5 tracking-tighter uppercase whitespace-nowrap">(${((top3[2].coins || 0) / EARNING_CONFIG.COINS_PER_USD).toFixed(2)})</span>
                 </div>
               </div>
             )}
@@ -156,53 +161,56 @@ export const Leaderboard = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.05 }}
-              className={`gaming-card p-4 flex items-center justify-between border-white/10 ${
-                u.id === currentUser?.id ? 'bg-gaming-accent/20 border-gaming-accent/40 ring-1 ring-gaming-accent/20 shadow-xl' : 'bg-blue-900/40'
+              className={`p-4 flex items-center justify-between border rounded-[24px] shadow-sm transition-all ${
+                u.id === currentUser?.id 
+                ? 'bg-brand-purple/5 border-brand-purple ring-1 ring-brand-purple/20' 
+                : 'bg-white border-slate-50'
               }`}
             >
               <div className="flex items-center gap-4">
                 <div className="w-8 flex flex-col items-center gap-1">
-                  <span className={`text-[12px] font-black text-white/40`}>#{i + 4}</span>
+                  <span className={`text-[12px] font-black text-slate-300`}>#{i + 4}</span>
                   <RankIndicator change="none" />
                 </div>
                 
                 <div className="relative">
-                  <div className={`w-12 h-12 rounded-xl overflow-hidden border-2 ${
-                    u.id === currentUser?.id ? 'border-gaming-accent' : 'border-white/10'
+                  <div className={`w-12 h-12 rounded-xl overflow-hidden border-2 transition-all ${
+                    u.id === currentUser?.id ? 'border-brand-purple shadow-md' : 'border-slate-100'
                   }`}>
-                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${u.name}`} alt="" className="w-full h-full object-cover" />
+                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${u.username}`} alt="" className="w-full h-full object-cover" />
                   </div>
-                  <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-blue-950 ${
-                    u.status === 'online' ? 'bg-green-500' : 'bg-gray-500'
+                  <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${
+                    u.status === 'online' ? 'bg-green-500' : 'bg-slate-300'
                   }`} />
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-black text-white flex items-center gap-1">
-                    {u.name}
-                    {u.id === currentUser?.id && <span className="text-[8px] bg-gaming-accent px-1.5 py-0.5 rounded uppercase">You</span>}
+                  <h4 className="text-sm font-black text-slate-900 flex items-center gap-1">
+                    {u.username}
+                    {u.id === currentUser?.id && <span className="text-[7px] font-black bg-brand-purple text-white px-1.5 py-0.5 rounded-full uppercase tracking-tighter">You</span>}
                   </h4>
                   <div className="flex items-center gap-2 mt-1">
-                    <div className="h-1 w-12 bg-white/10 rounded-full overflow-hidden">
-                      <div className="h-full bg-gaming-accent" style={{ width: '60%' }} />
+                    <div className="h-1 w-12 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-brand-purple" style={{ width: '60%' }} />
                     </div>
-                    <span className="text-[9px] font-bold text-white/40 uppercase">Lv.{u.level}</span>
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Lv.{u.level || 1}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-col items-end gap-1">
-                <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg border border-white/10">
+              <div className="flex flex-col items-end gap-0.5">
+                <div className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">
                   <CoinIcon size={12} />
-                  <span className="text-xs font-black text-white">{u.coins.toLocaleString()}</span>
+                  <span className="text-xs font-black text-slate-900">{u.coins.toLocaleString()}</span>
                 </div>
+                <span className="text-[8px] text-slate-400 font-bold uppercase tracking-tighter whitespace-nowrap">≈ ${((u.coins || 0) / EARNING_CONFIG.COINS_PER_USD).toFixed(2)}</span>
               </div>
             </motion.div>
           ))}
         </div>
         
         <div className="text-center py-4">
-          <p className="text-[10px] text-white/20 font-black uppercase tracking-tighter">Showing Top 100 Global Producers</p>
+          <p className="text-[10px] text-slate-300 font-black uppercase tracking-tighter">Showing Top 100 Global Producers</p>
         </div>
 
       </motion.div>

@@ -13,8 +13,12 @@ export const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }
     );
   }
 
-  if (!user || !isAdmin) {
+  if (!user) {
     return <Navigate to="/admin/login" />;
+  }
+  
+  if (!isAdmin) {
+    return <Navigate to="/" />;
   }
   
   return <>{children}</>;

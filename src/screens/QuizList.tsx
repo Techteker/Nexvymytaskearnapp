@@ -38,8 +38,6 @@ export const QuizList = () => {
       animate={{ opacity: 1, x: 0 }}
       className="flex flex-col gap-6"
     >
-      <TopBar />
-
       <div className="flex flex-col gap-1 mb-2">
         <h2 className="text-3xl font-display font-black italic tracking-tighter text-white">QUIZ & EARN</h2>
         <p className="text-sm text-white/40 font-bold uppercase tracking-wider">Test your brain cells</p>
@@ -52,7 +50,7 @@ export const QuizList = () => {
           const color = colorMap[quiz.title] || colorMap['default'];
           return (
             <motion.div
-              key={quiz.id}
+              key={quiz.$id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
@@ -92,7 +90,7 @@ export const QuizList = () => {
                   <div className="h-full bg-gaming-accent glow-blue w-[15%]" />
                 </div>
                 <button 
-                  onClick={() => navigate(`/quiz/${quiz.id}`)}
+                  onClick={() => navigate(`/quiz/${quiz.$id}`)}
                   className="gaming-button-yellow px-6 py-2.5 text-xs uppercase tracking-tighter"
                 >
                   START QUIZ

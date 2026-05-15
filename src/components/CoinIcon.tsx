@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { cn } from '@/src/lib/utils';
+import { cn } from '../lib/utils';
 
 export const CoinIcon = ({ className, size = 24 }: { className?: string; size?: number }) => {
   return (

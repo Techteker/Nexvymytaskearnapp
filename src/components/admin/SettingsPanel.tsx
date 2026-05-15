@@ -20,8 +20,8 @@ export const SettingsPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'app' | 'ads' | 'notify' | 'security'>('app');
   const [settings, setSettings] = useState<any>({
     appName: 'Nexvy',
-    minWithdrawal: 1000,
-    referralBonus: 500,
+    minWithdrawal: 50000,
+    referralBonus: 200,
     signupBonus: 100,
     commissionRate: 10,
     maintenanceMode: false,

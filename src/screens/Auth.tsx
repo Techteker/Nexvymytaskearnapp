@@ -2,16 +2,8 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { UserRole } from '../types';
 import { Mail, Lock, User, ArrowRight, ShieldCheck } from 'lucide-react';
-import { 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  GoogleAuthProvider, 
-  signInWithPopup,
-  updateProfile
-} from 'firebase/auth';
-import { auth, db } from '../lib/firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { apiService } from '../services/api';
 import { SEO } from '../components/SEO';
 
@@ -22,163 +14,57 @@ export const Auth = () => {
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
-  const { loading, user, auth: firebaseAuth, db: firestoreDb, authReady } = useAuth();
-  const [initTimeout, setInitTimeout] = useState(false);
+  const { loading, user, refreshUser, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   React.useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!authReady) {
-        setInitTimeout(true);
-      }
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [authReady]);
-
-  React.useEffect(() => {
+    console.log('[AUTH] State check:', { hasUser: !!user, loading, role: user?.role, isAdmin });
     if (user && !loading) {
-      const authorizedEmails = ['ranarajendar930@gmail.com', 'ranarajendar999@gmail.com'];
-      if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN' || authorizedEmails.includes(user.email)) {
-        navigate('/admin');
+      console.log('[AUTH] Redirecting user...', user.email);
+      
+      if (isAdmin) {
+        console.log('[AUTH] Navigating to /admin');
+        navigate('/admin', { replace: true });
       } else {
-        navigate('/');
+        console.log('[AUTH] Navigating to /');
+        navigate('/', { replace: true });
       }
     }
-  }, [user, loading, navigate]);
-
-  const handleGoogleLogin = async () => {
-    setAuthLoading(true);
-    setError('');
-
-    try {
-      if (firebaseAuth && authReady) {
-        const provider = new GoogleAuthProvider();
-        const result = await signInWithPopup(firebaseAuth, provider);
-        const user = result.user;
-        
-        if (firestoreDb) {
-          const authorizedEmails = ['ranarajendar930@gmail.com', 'ranarajendar999@gmail.com'];
-          const isAdmin = authorizedEmails.includes(user.email?.toLowerCase() || '');
-          
-          await setDoc(doc(firestoreDb, 'users', user.uid), {
-            uid: user.uid,
-            name: user.displayName || user.email?.split('@')[0],
-            email: user.email,
-            photoURL: user.photoURL || '',
-            coins: isAdmin ? 999999 : 0,
-            level: isAdmin ? 100 : 1,
-            role: isAdmin ? 'super_admin' : 'user',
-            referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
-            referredBy: '',
-            createdAt: serverTimestamp(),
-            lastLogin: serverTimestamp()
-          }, { merge: true });
-
-          if (isAdmin) {
-             await setDoc(doc(firestoreDb, 'admins', user.uid), {
-               email: user.email,
-               role: 'super_admin',
-               isSuperAdmin: true,
-               createdAt: serverTimestamp()
-             }, { merge: true });
-          }
-        }
-      } else {
-        // Backend Google Login Fallback
-        const res = await fetch('/api/auth/google/url');
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(`Google login failed: ${text.substring(0, 50)}`);
-        }
-        const { url } = await res.json();
-        if (!url) throw new Error('Google Login not configured on server');
-
-        const width = 500, height = 600;
-        const left = window.screenX + (window.outerWidth - width) / 2;
-        const top = window.screenY + (window.outerHeight - height) / 2;
-        const popup = window.open(url, 'google-login', `width=${width},height=${height},left=${left},top=${top}`);
-
-        if (!popup) {
-          setError('Popup blocked! Please allow popups and try again.');
-          return;
-        }
-
-        // Listen for message from popup
-        const messageListener = (event: MessageEvent) => {
-          if (event.data.type === 'OAUTH_AUTH_SUCCESS') {
-            localStorage.setItem('token', event.data.token);
-            window.removeEventListener('message', messageListener);
-            window.location.reload();
-          }
-        };
-        window.addEventListener('message', messageListener);
-      }
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Failed to login with Google');
-    } finally {
-      setAuthLoading(false);
-    }
-  };
+  }, [user, loading, navigate, isAdmin]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[AUTH] Submitting...', { isLogin, email });
     setError('');
     setAuthLoading(true);
 
     try {
-      if (authReady && firebaseAuth) {
-        // Firebase Auth Path
-        if (isLogin) {
-          await signInWithEmailAndPassword(firebaseAuth, email, password);
-        } else {
-          const userCredential = await createUserWithEmailAndPassword(firebaseAuth, email, password);
-          const fUser = userCredential.user;
-          await updateProfile(fUser, { displayName: username });
-          if (firestoreDb) {
-            await setDoc(doc(firestoreDb, 'users', fUser.uid), {
-              uid: fUser.uid,
-              name: username,
-              email: fUser.email,
-              photoURL: fUser.photoURL || '',
-              coins: 0,
-              level: 1,
-              referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
-              referredBy: '',
-              createdAt: serverTimestamp(),
-              lastLogin: serverTimestamp()
-            });
-          }
-        }
+      if (isLogin) {
+        const res = await apiService.login({ email, password });
+        if (res.error) throw new Error(res.error);
+        console.log('[AUTH] Login successful, refreshing user...');
+        await refreshUser();
       } else {
-        // Local Auth Fallback Path
-        if (isLogin) {
-          const res = await apiService.login({ email, password });
-          if (res.error) throw new Error(res.error);
-          localStorage.setItem('token', res.token);
-          window.location.reload(); // To trigger re-init in AuthProvider
-        } else {
-          const res = await apiService.signup({ email, password, username });
-          if (res.error) throw new Error(res.error);
-          localStorage.setItem('token', res.token);
-          window.location.reload();
-        }
+        const res: any = await apiService.signup({ email, password, username });
+        if (res.error) throw new Error(res.error);
+        console.log('[AUTH] Signup successful, refreshing user...');
+        await refreshUser();
       }
     } catch (err: any) {
       console.error(err);
       let msg = err.message;
-      if (err.code === 'auth/email-already-in-use') {
-        msg = "Email already registered. Switching to login...";
-        setIsLogin(true); // Automatically switch to login for better UX
-      } else if (err.code === 'auth/wrong-password') {
-        msg = "Incorrect password. Please try again.";
-      } else if (err.code === 'auth/user-not-found') {
-        msg = "No account found with this email.";
-      } else if (err.message?.includes('Email already registered')) {
-        msg = "Email already registered. Please login instead.";
+      
+      if (err.message?.includes('already registered') || err.message?.includes('already exists')) {
+        msg = "Email registered. Login instead.";
         setIsLogin(true);
+      } else if (err.message?.includes('password') || err.message?.includes('Invalid credentials')) {
+        msg = "Invalid password. Try again.";
+      } else if (err.message?.includes('user_not_found') || err.message?.includes('Account not found')) {
+        msg = "Account not found. Create one?";
+        setIsLogin(false);
       }
-      setError(msg);
+
+      setError(msg || "Auth Protocol Error. Try later.");
     } finally {
       setAuthLoading(false);
     }
@@ -190,89 +76,102 @@ export const Auth = () => {
         title={isLogin ? "Login" : "Sign Up"} 
         description="Join the Nexvy community. Securely login or create an account to start earning rewards today."
       />
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gaming-blue-900">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 mesh-gradient">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md gaming-card p-8 bg-blue-900/40 border-white/10 shadow-2xl relative overflow-hidden"
+          className="w-full max-w-md gaming-card p-8 bg-white border border-slate-100 shadow-2xl relative overflow-hidden"
         >
-          <div className="absolute -top-24 -right-24 w-48 h-48 bg-gaming-accent/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -top-24 -right-24 w-48 h-48 bg-brand-purple/10 rounded-full blur-3xl pointer-events-none" />
           
           <div className="flex flex-col items-center gap-2 mb-8">
-              <div className="w-16 h-16 rounded-2xl bg-gaming-accent flex items-center justify-center shadow-lg transform rotate-12">
-                  <ShieldCheck className="w-10 h-10 text-white" />
+              <div className="w-24 h-24 rounded-full bg-white flex items-center justify-center shadow-md border-2 border-slate-50 overflow-hidden">
+                  <img src="/input_file_0.png" alt="Nexvy Logo" className="w-full h-full object-contain" />
               </div>
-              <h1 className="text-4xl font-display font-black text-white italic tracking-tighter mt-4">RJ LOGIN</h1>
-              <p className="text-white/40 font-bold uppercase text-[10px] tracking-widest leading-none">RJ ACCESS PANEL</p>
+              <h1 className="text-3xl font-display font-black text-brand-purple italic tracking-tighter mt-4 leading-none">NEXVY</h1>
+              <p className="text-slate-400 font-black uppercase text-[10px] tracking-widest leading-none mt-1">SECURE ACCESS</p>
           </div>
+
+          {!isLogin && (
+            <p className="text-center text-[10px] font-black text-emerald-500 mb-6 uppercase tracking-tighter animate-pulse">
+              1M+ ACTIVE USERS JOINED
+            </p>
+          )}
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4 relative z-10">
             {!isLogin && (
               <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
                 <input
                   type="text"
-                  placeholder="Username"
+                  placeholder="Full Name"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-gaming-accent outline-none transition-all placeholder:text-white/20 font-bold"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-4 text-slate-900 focus:border-brand-purple outline-none transition-all placeholder:text-slate-300 font-bold"
                   required
                 />
               </div>
             )}
             <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
               <input
                 type="email"
-                placeholder="Email"
+                placeholder="Email Address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-gaming-accent outline-none transition-all placeholder:text-white/20 font-bold"
+                className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-4 text-slate-900 focus:border-brand-purple outline-none transition-all placeholder:text-slate-300 font-bold"
                 required
               />
             </div>
             <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
               <input
                 type="password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-gaming-accent outline-none transition-all placeholder:text-white/20 font-bold"
+                className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-4 text-slate-900 focus:border-brand-purple outline-none transition-all placeholder:text-slate-300 font-bold"
                 required
               />
             </div>
 
-            {error && <p className="text-red-400 text-[10px] font-black uppercase text-center">{error}</p>}
-            {initTimeout && !authReady && (
-              <div className="bg-yellow-500/10 border border-yellow-500/20 p-3 rounded-xl">
-                <p className="text-yellow-400 text-[10px] font-black uppercase text-center leading-relaxed">
-                  Cloud Sync is delayed. <br/>
-                  Email login is active and ready to use.
-                </p>
-              </div>
-            )}
+            {error && <p className="text-red-500 text-[10px] font-black uppercase text-center">{error}</p>}
 
             <button
               type="submit"
               disabled={authLoading}
-              className="gaming-button-yellow w-full py-4 text-lg font-black tracking-tighter mt-4 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="gaming-button-yellow w-full py-4 text-lg font-black tracking-tighter mt-4 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl"
             >
-              {authLoading ? 'PROCESSING...' : (isLogin ? 'LOGIN RJ' : 'CREATE ACCOUNT RJ')}
+              {authLoading ? 'PROCESSING...' : (isLogin ? 'LOG IN' : 'SIGN UP')}
               {!authLoading && <ArrowRight className="w-5 h-5" />}
             </button>
 
             <div className="flex items-center gap-4 my-2">
-              <div className="h-[1px] flex-1 bg-white/10" />
-              <span className="text-[10px] font-black text-white/20 uppercase">OR</span>
-              <div className="h-[1px] flex-1 bg-white/10" />
+              <div className="h-[1px] flex-1 bg-slate-100" />
+              <span className="text-[10px] font-black text-slate-300 uppercase">OR</span>
+              <div className="h-[1px] flex-1 bg-slate-100" />
             </div>
 
             <button
               type="button"
-              onClick={handleGoogleLogin}
-              disabled={authLoading || !authReady}
-              className="w-full py-4 bg-white text-black font-black flex items-center justify-center gap-3 rounded-2xl hover:bg-white/90 transition-colors uppercase text-sm tracking-tight disabled:opacity-50"
+              onClick={async () => {
+                try {
+                  const { OAuthProvider } = await import('appwrite');
+                  const { account: appwriteAccount } = await import('../lib/appwrite');
+                  try {
+                    await appwriteAccount.deleteSession('current');
+                  } catch (e) {}
+                  appwriteAccount.createOAuth2Session(
+                    OAuthProvider.Google,
+                    window.location.origin,
+                    window.location.origin + '/login'
+                  );
+                } catch (e) {
+                  console.error(e);
+                }
+              }}
+              disabled={authLoading}
+              className="w-full py-4 bg-white text-slate-900 font-black flex items-center justify-center gap-3 rounded-2xl border border-slate-200 hover:bg-slate-50 transition-all shadow-sm uppercase text-sm tracking-tight disabled:opacity-50"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
@@ -292,15 +191,15 @@ export const Auth = () => {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
               </svg>
-              Google Account
+              Google Login
             </button>
           </form>
 
-          <div className="mt-8 text-center text-[10px] font-black uppercase tracking-widest text-white/40">
-            {isLogin ? "New user?" : "Existing operative?"}
+          <div className="mt-8 text-center text-[10px] font-black uppercase tracking-widest text-slate-400">
+            {isLogin ? "Don't have an account?" : "Already a member?"}
             <button
               onClick={() => setIsLogin(!isLogin)}
-              className="text-gaming-accent ml-2 hover:underline"
+              className="text-brand-purple ml-2 hover:underline"
             >
               {isLogin ? 'Sign up' : 'Log in'}
             </button>
