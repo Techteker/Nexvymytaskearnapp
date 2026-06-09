@@ -1,0 +1,8 @@
+{
+  "name": "Nexvy",
+  "description": "Nexvy is an all-in-one earning platform where users can complete surveys, do tasks, refer friends, and get cashback rewards. Start earning real money online with instant payouts and simple activities designed for everyone.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

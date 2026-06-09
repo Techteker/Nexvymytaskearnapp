@@ -1,0 +1,178 @@
+import React, { useState } from 'react';
+import { motion } from 'motion/react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { UserRole } from '../types';
+import { Mail, Lock, User, ArrowRight, ShieldCheck } from 'lucide-react';
+import { apiService } from '../services/api';
+import { SEO } from '../components/SEO';
+
+export const Auth = () => {
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [error, setError] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
+  const { loading, user, refreshUser, isAdmin } = useAuth();
+  const navigate = useNavigate();
+  const [logo, setLogo] = useState(() => localStorage.getItem('app_logo') || '/input_file_0.png');
+
+  React.useEffect(() => {
+    const handleLogoChange = () => {
+      setLogo(localStorage.getItem('app_logo') || '/input_file_0.png');
+    };
+    window.addEventListener('app_logo_changed', handleLogoChange);
+    return () => window.removeEventListener('app_logo_changed', handleLogoChange);
+  }, []);
+
+  React.useEffect(() => {
+    console.log('[AUTH] State check:', { hasUser: !!user, loading, role: user?.role, isAdmin });
+    if (user && !loading) {
+      console.log('[AUTH] Redirecting user...', user.email);
+      
+      if (isAdmin) {
+        console.log('[AUTH] Navigating to /admin');
+        navigate('/admin', { replace: true });
+      } else {
+        console.log('[AUTH] Navigating to /');
+        navigate('/', { replace: true });
+      }
+    }
+  }, [user, loading, navigate, isAdmin]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('[AUTH] Submitting...', { isLogin, email });
+    setError('');
+    setAuthLoading(true);
+
+    try {
+      if (isLogin) {
+        const res = await apiService.login({ email, password });
+        if (res.error) throw new Error(res.error);
+        console.log('[AUTH] Login successful, refreshing user...');
+        await refreshUser();
+      } else {
+        const res: any = await apiService.signup({ email, password, username });
+        if (res.error) throw new Error(res.error);
+        console.log('[AUTH] Signup successful, refreshing user...');
+        await refreshUser();
+      }
+    } catch (err: any) {
+      if (err.message?.toLowerCase().includes('failed to fetch') || err.message?.toLowerCase().includes('network error') || String(err).toLowerCase().includes('failed to fetch')) {
+        console.warn('[AUTH] Connection issue during authentication (likely offline or API unreachable):', err.message || err);
+      } else {
+        console.error(err);
+      }
+      let msg = err.message;
+      
+      if (err.message?.includes('already registered') || err.message?.includes('already exists')) {
+        msg = "Email registered. Login instead.";
+        setIsLogin(true);
+      } else if (err.message?.includes('password') || err.message?.includes('Invalid credentials')) {
+        msg = "Invalid password. Try again.";
+      } else if (err.message?.includes('user_not_found') || err.message?.includes('Account not found')) {
+        msg = "Account not found. Create one?";
+        setIsLogin(false);
+      }
+
+      setError(msg || "Auth Protocol Error. Try later.");
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <SEO 
+        title={isLogin ? "Login to Your Nexvy Account: Start Earning Now" : "Register Free on Nexvy: Claim Signup Coin Bonus"} 
+        description={isLogin ? "Log in to your Nexvy account securely to complete daily tasks, earn coins and withdraw cash directly into your UPI or Paytm wallet." : "Sign up for a free Nexvy account today. Play trivia quizzes, complete high-paying tasks, spin the lucky wheel and earn real online cash rewards."}
+        keywords={isLogin ? "nexvy login, access nexvy account, login earn money app, log into wallet" : "register nexvy account, sign up earning app, signup bonus free, create earning account, free paytm cash sign up"}
+      />
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-b from-[#f8fafc] to-[#f1f5f9]">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md gaming-card p-8 bg-white border border-slate-100 shadow-2xl relative overflow-hidden"
+        >
+          <div className="absolute -top-24 -right-24 w-48 h-48 bg-brand-purple/5 rounded-full pointer-events-none" />
+          
+          <div className="flex flex-col items-center gap-2 mb-8">
+               <div className="w-24 h-24 rounded-full bg-white flex items-center justify-center shadow-md border-2 border-slate-50 overflow-hidden">
+                  <img src={logo} alt="Nexvy Logo" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
+               </div>
+              <h1 className="text-3xl font-display font-black text-brand-purple italic tracking-tighter mt-4 leading-none">NEXVY</h1>
+              <p className="text-slate-400 font-black uppercase text-[10px] tracking-widest leading-none mt-1">SECURE ACCESS</p>
+          </div>
+
+          {!isLogin && (
+            <p className="text-center text-[10px] font-black text-emerald-500 mb-6 uppercase tracking-tighter animate-pulse">
+              1M+ ACTIVE USERS JOINED
+            </p>
+          )}
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4 relative z-10">
+            {!isLogin && (
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
+                <input
+                  type="text"
+                  placeholder="Full Name"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-4 text-slate-900 focus:border-brand-purple outline-none transition-all placeholder:text-slate-300 font-bold"
+                  required
+                />
+              </div>
+            )}
+            <div className="relative">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
+              <input
+                type="email"
+                placeholder="Email Address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-4 text-slate-900 focus:border-brand-purple outline-none transition-all placeholder:text-slate-300 font-bold"
+                required
+              />
+            </div>
+            <div className="relative">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-4 text-slate-900 focus:border-brand-purple outline-none transition-all placeholder:text-slate-300 font-bold"
+                required
+              />
+            </div>
+
+            {error && <p className="text-red-500 text-[10px] font-black uppercase text-center">{error}</p>}
+
+            <button
+              type="submit"
+              disabled={authLoading}
+              className="gaming-button-yellow w-full py-4 text-lg font-black tracking-tighter mt-4 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl"
+            >
+              {authLoading ? 'PROCESSING...' : (isLogin ? 'LOG IN' : 'SIGN UP')}
+              {!authLoading && <ArrowRight className="w-5 h-5" />}
+            </button>
+
+          </form>
+
+          <div className="mt-8 text-center text-[10px] font-black uppercase tracking-widest text-slate-400">
+            {isLogin ? "Don't have an account?" : "Already a member?"}
+            <button
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-brand-purple ml-2 hover:underline"
+            >
+              {isLogin ? 'Sign up' : 'Log in'}
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    </>
+  );
+};

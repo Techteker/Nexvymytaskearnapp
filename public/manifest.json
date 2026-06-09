@@ -1,0 +1,21 @@
+{
+  "name": "Nexvy",
+  "short_name": "Nexvy",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#3b82f6",
+  "description": "Premium Social Earning Platform",
+  "icons": [
+    {
+      "src": "https://api.dicebear.com/7.x/identicon/svg?seed=Nexvy",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "https://api.dicebear.com/7.x/identicon/svg?seed=Nexvy",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
