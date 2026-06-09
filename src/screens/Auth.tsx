@@ -58,6 +58,18 @@ export const Auth = () => {
         if (res.error) throw new Error(res.error);
         console.log('[AUTH] Signup successful, refreshing user...');
         await refreshUser();
+
+        // Safe auto claim from query parameter cache in local storage
+        const savedRef = localStorage.getItem('referredBy');
+        if (savedRef) {
+          try {
+            await apiService.claimReferral(savedRef);
+            localStorage.removeItem('referredBy');
+            console.log('[REFERRAL] Auto-claimed referral bonus successfully during onboarding!');
+          } catch (refErr) {
+            console.warn('[REFERRAL] Auto-claim referral code failed:', refErr);
+          }
+        }
       }
     } catch (err: any) {
       if (err.message?.toLowerCase().includes('failed to fetch') || err.message?.toLowerCase().includes('network error') || String(err).toLowerCase().includes('failed to fetch')) {

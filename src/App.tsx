@@ -19,6 +19,7 @@ import { QuizList } from './screens/QuizList';
 import { QuizGame } from './screens/QuizGame';
 import { TaskDetails } from './screens/TaskDetails';
 import { Welcome } from './screens/Welcome';
+import { Auth } from './screens/Auth';
 import Profile from './screens/Account';
 import { PrivacyPolicy } from './screens/PrivacyPolicy';
 import { AboutUs } from './screens/AboutUs';
@@ -76,6 +77,14 @@ const AppContent = () => {
   const { authReady } = useAuth();
 
   useEffect(() => {
+    // Capture URL referral code dynamically on land and store it in local storage
+    const params = new URLSearchParams(window.location.search);
+    const refCode = params.get('ref');
+    if (refCode) {
+      localStorage.setItem('referredBy', refCode.trim().toUpperCase());
+      console.log('[REFERRAL] Captured and saved referral code:', refCode.trim().toUpperCase());
+    }
+
     // 1. Fetch and synchronize brand logo from the persistent cloud database first
     const syncLogoFromCloud = async () => {
       try {
@@ -136,6 +145,7 @@ const AppContent = () => {
         {/* User Routes */}
         <Route path="/login" element={<Welcome />} />
         <Route path="/welcome" element={<Welcome />} />
+        <Route path="/auth" element={<Auth />} />
         <Route path="/" element={<ProtectedRoute><Layout><Home /></Layout></ProtectedRoute>} />
         <Route path="/tasks" element={<ProtectedRoute><Layout><Tasks /></Layout></ProtectedRoute>} />
         <Route path="/spinner" element={<ProtectedRoute><Layout><Spinner /></Layout></ProtectedRoute>} />

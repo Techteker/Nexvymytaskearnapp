@@ -92,6 +92,19 @@ export const Welcome = () => {
         const res: any = await apiService.signup({ email, password, username });
         if (res.error) throw new Error(res.error);
         await refreshUser();
+
+        // Safe auto claim from query parameter cache in local storage
+        const savedRef = localStorage.getItem('referredBy');
+        if (savedRef) {
+          try {
+            await apiService.claimReferral(savedRef);
+            localStorage.removeItem('referredBy');
+            console.log('[REFERRAL] Auto-claimed referral bonus successfully for new user!');
+          } catch (refErr) {
+            console.warn('[REFERRAL] Auto-claim referral code failed:', refErr);
+          }
+        }
+
         setShowAuthDrawer(false);
         navigate('/');
       }
