@@ -110,9 +110,7 @@ export const Welcome = () => {
       }
     } catch (err: any) {
       let msg = err.message;
-      if (err.message?.includes('missing scopes') || err.message?.toLowerCase().includes('guests') || err.message?.includes('ACCOUNT') || err.message?.includes('role: guests')) {
-        msg = "Appwrite Config Error: Please add your app domain to Appwrite Console -> select Project -> scroll to Platforms -> Add Web Platform!";
-      } else if (err.message?.includes('already registered') || err.message?.includes('already exists')) {
+      if (err.message?.includes('already registered') || err.message?.includes('already exists')) {
         msg = "Email registered. Login instead.";
         setIsLogin(true);
       } else if (err.message?.includes('password') || err.message?.includes('Invalid credentials')) {
