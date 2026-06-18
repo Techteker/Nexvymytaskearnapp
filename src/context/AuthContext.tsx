@@ -26,6 +26,32 @@ interface UserData {
   streak: number;
 }
 
+const isProjectPausedError = (e: any) => {
+  const msg = String(e?.message || e).toLowerCase();
+  return msg.includes('project is paused') || 
+         msg.includes('paused due to inactivity') || 
+         msg.includes('inactive project');
+};
+
+const getSimulatedUser = (): UserData => {
+  const localCoins = localStorage.getItem('simulated_coins');
+  const coinsNum = localCoins ? parseInt(localCoins, 10) : 5250;
+  const username = localStorage.getItem('simulated_username') || 'NexvyDemoUser';
+  return {
+    uid: 'simulated_user_123',
+    email: 'ranarajendar999@gmail.com',
+    username: username,
+    coins: coinsNum,
+    level: Math.floor(coinsNum / 1000) + 1,
+    role: UserRole.ADMIN,
+    isBanned: false,
+    referralCode: 'SIM2026',
+    referredBy: '',
+    streak: 3,
+    photoURL: ''
+  };
+};
+
 interface AuthContextType {
   user: UserData | null;
   setUser: React.Dispatch<React.SetStateAction<UserData | null>>;
@@ -34,6 +60,8 @@ interface AuthContextType {
   loading: boolean;
   authReady: boolean;
   refreshUser: () => Promise<void>;
+  isSimulationMode: boolean;
+  setIsSimulationMode: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,6 +70,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [authReady, setAuthReady] = useState(false);
+  const [isSimulationMode, setIsSimulationMode] = useState<boolean>(() => {
+    return localStorage.getItem('simulation_mode_active') === 'true';
+  });
   const unsubRef = useRef<(() => void) | null>(null);
 
   const fetchUserSession = React.useCallback(async () => {
@@ -51,6 +82,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (unsubRef.current) {
         unsubRef.current();
         unsubRef.current = null;
+      }
+
+      if (localStorage.getItem('simulation_mode_active') === 'true' || isSimulationMode) {
+        console.log('[AUTH] Simulation Mode Active. Skipping cloud login.');
+        setIsSimulationMode(true);
+        setUser(getSimulatedUser());
+        setAuthReady(true);
+        setLoading(false);
+        return;
       }
       
       const session = await account.get();
@@ -171,24 +211,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(null);
       }
     } catch (e: any) {
-      // 401 is normal for guests, don't log as error
-      if (e.code === 401 || e.type?.includes('unauthorized') || e.message?.includes('missing scopes')) {
-        console.log('[AUTH] Session: Guest');
-      } else if (isNetworkError(e)) {
-        console.warn('[AUTH] Session fetch failed due to lack of connection/API unreachable:', e.message || e);
+      if (isProjectPausedError(e)) {
+        console.warn('[AUTH] Session fetch encountered paused project. Activating Simulation Mode.');
+        localStorage.setItem('simulation_mode_active', 'true');
+        setIsSimulationMode(true);
+        setUser(getSimulatedUser());
       } else {
-        console.error('[AUTH] Session fetch failed:', e);
+        // 401 is normal for guests, don't log as error
+        if (e.code === 401 || e.type?.includes('unauthorized') || e.message?.includes('missing scopes')) {
+          console.log('[AUTH] Session: Guest');
+        } else if (isNetworkError(e)) {
+          console.warn('[AUTH] Session fetch failed due to lack of connection/API unreachable:', e.message || e);
+        } else {
+          console.error('[AUTH] Session fetch failed:', e);
+        }
+        setUser(null);
       }
-      setUser(null);
     } finally {
       setAuthReady(true);
       setLoading(false);
     }
-  }, []);
+  }, [isSimulationMode]);
 
   useEffect(() => {
     fetchUserSession();
   }, [fetchUserSession]);
+
+  useEffect(() => {
+    const handleSimActivated = () => {
+      console.log('[AUTH-EVENT] Simulation mode activated event received');
+      localStorage.setItem('simulation_mode_active', 'true');
+      setIsSimulationMode(true);
+      setUser(getSimulatedUser());
+    };
+    window.addEventListener('simulation_activated', handleSimActivated);
+    return () => {
+      window.removeEventListener('simulation_activated', handleSimActivated);
+    };
+  }, []);
 
   const logout = async () => {
     try {
@@ -197,8 +257,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         unsubRef.current();
         unsubRef.current = null;
       }
-      await account.deleteSession('current');
+      try {
+        await account.deleteSession('current');
+      } catch (err) {}
       localStorage.clear();
+      setIsSimulationMode(false);
       setUser(null);
     } catch (e) {
       console.error('[AUTH] Logout failed:', e);
@@ -214,7 +277,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshUser = React.useCallback(async () => {
     await fetchUserSession();
-  }, []);
+  }, [fetchUserSession]);
 
   const value = React.useMemo(() => ({ 
     user, 
@@ -223,8 +286,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout, 
     loading, 
     authReady,
-    refreshUser
-  }), [user, isAdmin, logout, loading, authReady, refreshUser]);
+    refreshUser,
+    isSimulationMode,
+    setIsSimulationMode
+  }), [user, isAdmin, logout, loading, authReady, refreshUser, isSimulationMode]);
 
   return (
     <AuthContext.Provider value={value}>

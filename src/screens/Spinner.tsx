@@ -33,7 +33,7 @@ const MULTIPLIER_TO_INDEX: { [key: number]: number } = {
 
 export const Spinner = () => {
   const navigate = useNavigate();
-  const { refreshUser } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { showToast } = useToast();
   const controls = useAnimation();
   const [spinning, setSpinning] = React.useState(false);
@@ -133,6 +133,11 @@ export const Spinner = () => {
       setSpinning(false);
       setSpinOutcome({ multiplier, win });
       setShowResultModal(true);
+      await apiService.createNotification(
+        'Lucky Spin Approved! 🎯',
+        `Congratulations! You spent ${packs[selectedPack].coins} and won ${win} coins at multiplier x${multiplier}!`,
+        user?.uid || user?.$id
+      );
     } catch (error) {
       console.error(error);
       setSpinning(false);
