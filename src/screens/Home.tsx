@@ -8,7 +8,6 @@ import { apiService } from '../services/api';
 import { SEO } from '../components/SEO';
 import { Skeleton } from '../components/Skeleton';
 import { ShopEarnBanner } from '../components/ShopEarnBanner';
-import { AdBanner } from '../components/AdBanner';
 
 export const Home = () => {
   const navigate = useNavigate();
@@ -90,29 +89,29 @@ export const Home = () => {
         {/* Games Showcase */}
         <div>
           <div className="flex items-center justify-between mb-4 px-2">
-            <h3 className="font-display font-black text-lg uppercase italic text-brand-purple tracking-tight">Game Center</h3>
-            <Gamepad2 className="w-4 h-4 text-slate-200" />
+            <h3 className="font-display font-black text-lg uppercase italic text-[#F8D37A] tracking-tight">Game Center</h3>
+            <Gamepad2 className="w-4 h-4 text-[#F8D37A] animate-pulse" />
           </div>
           <div className="grid grid-cols-2 gap-4">
              <div 
                onClick={() => navigate('/survey')}
-               className="p-4 relative overflow-hidden bg-gradient-to-br from-brand-purple to-violet-900 rounded-[24px] group cursor-pointer shadow-lg"
+               className="p-5 relative overflow-hidden bg-gradient-to-br from-[#0c247d] to-[#040d2d] rounded-[24px] border border-[#D4AF37]/35 group cursor-pointer shadow-lg hover:shadow-[0_8px_20px_rgba(212,175,55,0.15)] transition-all"
              >
                 <div className="relative z-10">
-                   <h4 className="text-sm font-black text-white italic uppercase tracking-tight">SURVEY & EARN</h4>
-                   <p className="text-[8px] text-white/60 font-bold uppercase tracking-wider">CPX Surveys - High Rewards</p>
+                   <h4 className="text-sm font-black text-[#F8D37A] italic uppercase tracking-tight">SURVEY & EARN</h4>
+                   <p className="text-[8px] text-slate-300 font-bold uppercase tracking-wider">CPX Surveys - High Rewards</p>
                 </div>
-                <PlayCircle className="absolute -right-2 -bottom-2 w-12 h-12 text-white/10 group-hover:scale-110 transition-transform" />
+                <PlayCircle className="absolute -right-2 -bottom-2 w-12 h-12 text-[#D4AF37]/15 group-hover:scale-110 transition-transform" />
              </div>
              <div 
                onClick={() => navigate('/spinner')}
-               className="p-4 relative overflow-hidden bg-gradient-to-br from-brand-purple to-indigo-800 rounded-[24px] group cursor-pointer shadow-lg"
+               className="p-5 relative overflow-hidden bg-gradient-to-br from-[#0c247d] to-[#040d2d] rounded-[24px] border border-[#D4AF37]/35 group cursor-pointer shadow-lg hover:shadow-[0_8px_20px_rgba(212,175,55,0.15)] transition-all"
              >
                 <div className="relative z-10">
-                   <h4 className="text-sm font-black text-white italic uppercase tracking-tighter">LUCKY SPIN</h4>
-                   <p className="text-[8px] text-white/60 font-bold uppercase">Test your luck</p>
+                   <h4 className="text-sm font-black text-[#F8D37A] italic uppercase tracking-tighter">LUCKY SPIN</h4>
+                   <p className="text-[8px] text-slate-300 font-bold uppercase">Test your luck</p>
                 </div>
-                <PlayCircle className="absolute -right-2 -bottom-2 w-12 h-12 text-white/10 group-hover:scale-110 transition-transform" />
+                <PlayCircle className="absolute -right-2 -bottom-2 w-12 h-12 text-[#D4AF37]/15 group-hover:scale-110 transition-transform" />
              </div>
           </div>
         </div>
@@ -123,8 +122,8 @@ export const Home = () => {
         {/* Trending Section */}
         <div>
           <div className="flex items-center justify-between mb-4 px-2">
-            <h3 className="font-display font-black text-lg uppercase italic text-brand-purple tracking-tight">Hot Tasks</h3>
-            <button onClick={() => navigate('/tasks')} className="text-[10px] font-black text-brand-purple uppercase hover:underline">View All</button>
+            <h3 className="font-display font-black text-lg uppercase italic text-[#F8D37A] tracking-tight">Hot Tasks</h3>
+            <button onClick={() => navigate('/tasks')} className="text-[10px] font-black text-[#F8D37A] uppercase hover:underline">View All</button>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {loading ? (
@@ -137,15 +136,15 @@ export const Home = () => {
                 </div>
               ))
             ) : tasks.length === 0 ? (
-              <div className="col-span-2 text-center text-slate-300 font-bold py-10 uppercase text-xs tracking-widest">No tasks available</div>
+              <div className="col-span-2 text-center text-slate-400 font-bold py-10 uppercase text-xs tracking-widest">No tasks available</div>
             ) : (
               tasks.slice(0, 4).map((task) => (
                 <div 
                   key={task.$id} 
                   onClick={() => navigate(`/task/${task.$id}`)}
-                  className="gaming-card p-4 flex flex-col items-center text-center gap-3 group hover:bg-slate-50 transition-all cursor-pointer border border-slate-100"
+                  className="gaming-card p-4 flex flex-col items-center text-center gap-3 group hover:border-[#D4AF37]/50 hover:bg-[#0c247d]/40 transition-all cursor-pointer"
                 >
-                  <div className="w-16 h-16 rounded-2xl bg-brand-purple/5 flex items-center justify-center border-2 border-brand-purple/10 shadow-inner group-hover:border-brand-purple/30 overflow-hidden transition-colors">
+                  <div className="w-16 h-16 rounded-2xl bg-[#06164A] flex items-center justify-center border-2 border-[#D4AF37]/20 shadow-inner group-hover:border-[#D4AF37]/50 overflow-hidden transition-colors">
                     {task.imageUrl ? (
                       <img 
                         src={task.imageUrl} 
@@ -154,19 +153,19 @@ export const Home = () => {
                         referrerPolicy="no-referrer"
                       />
                     ) : (
-                      <TrendingUp className="w-8 h-8 text-brand-purple" />
+                      <TrendingUp className="w-8 h-8 text-[#D4AF37]" />
                     )}
                   </div>
                   <div>
-                    <h4 className="text-xs font-black text-slate-800 leading-tight mb-1 line-clamp-1">{task.title}</h4>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">{task.category}</p>
+                    <h4 className="text-xs font-black text-white leading-tight mb-1 line-clamp-1">{task.title}</h4>
+                    <p className="text-[9px] text-[#F8D37A] font-bold uppercase tracking-tight">{task.category}</p>
                   </div>
-                  <div className="flex items-center gap-1 bg-brand-purple/5 py-1 px-3 rounded-full border border-brand-purple/10">
+                  <div className="flex items-center gap-1 bg-[#F8D37A]/10 py-1 px-3 rounded-full border border-[#D4AF37]/35">
                     <CoinIcon size={14} />
-                    <span className="text-[10px] font-black text-brand-purple">+{task.reward}</span>
+                    <span className="text-[10px] font-black text-[#F8D37A]">+{task.reward}</span>
                   </div>
                   <button 
-                    className="w-full mt-2 py-2 bg-brand-purple/10 border border-brand-purple/30 rounded-xl text-[10px] font-black text-brand-purple uppercase hover:bg-brand-purple hover:text-white transition-all shadow-lg"
+                    className="w-full mt-2 py-2.5 bg-gradient-to-b from-[#F8D37A] to-[#D4AF37] hover:from-[#fff] hover:to-[#F8D37A] rounded-xl text-[10px] font-black text-slate-950 uppercase shadow-md transition-all active:scale-[97%]"
                   >
                     START
                   </button>
@@ -175,9 +174,6 @@ export const Home = () => {
             )}
           </div>
         </div>
-
-        {/* Large 300x250 Adsterra Promotional Banner Ad */}
-        <AdBanner type="large" />
 
       </motion.div>
     </>

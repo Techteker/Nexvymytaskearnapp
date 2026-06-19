@@ -175,10 +175,10 @@ export const Spinner = () => {
         animate={{ opacity: 1, scale: 1 }}
         className="flex flex-col gap-6"
       >
-      <div className="flex flex-col items-center gap-1 mb-2">
-        <h1 className="text-4xl font-display font-black text-brand-purple text-center italic tracking-tighter flex flex-col leading-none">
-          <span className="text-orange-500 text-lg not-italic">COIN</span>
-          <span>KING</span>
+      <div className="flex flex-col items-center gap-1 mb-2 select-none">
+        <h1 className="text-4xl font-display font-black text-white text-center italic tracking-tighter flex flex-col leading-none">
+          <span className="text-white text-xs not-italic bg-[#0a1f6b]/80 border border-[#D4AF37]/35 py-1 px-3 rounded-full tracking-[0.2em] w-fit mx-auto shadow-md mb-2">LUCKY WHEEL</span>
+          <span className="bg-gradient-to-r from-[#F8D37A] via-[#D4AF37] to-[#B8860B] bg-clip-text text-transparent italic drop-shadow">COIN KING</span>
         </h1>
       </div>
 
@@ -189,19 +189,19 @@ export const Spinner = () => {
              onClick={() => setMuted(!muted)}
              className="flex flex-col items-center group cursor-pointer border-0 bg-transparent"
             >
-              <div className="p-2.5 bg-brand-purple/10 rounded-xl border-2 border-brand-purple/20 group-active:scale-90 transition-transform shadow-sm">
-                {muted ? <VolumeX className="w-5 h-5 text-red-500" /> : <Volume2 className="w-5 h-5 text-brand-purple" />}
+              <div className="p-2.5 bg-[#0a1f6b]/75 rounded-2xl border border-[#D4AF37]/30 group-active:scale-95 transition-transform shadow-md">
+                {muted ? <VolumeX className="w-5 h-5 text-rose-400" /> : <Volume2 className="w-5 h-5 text-[#F8D37A]" />}
               </div>
-              <span className="text-[8px] font-black uppercase mt-1 text-slate-400">{muted ? 'Muted' : 'Sound'}</span>
+              <span className="text-[8px] font-black uppercase mt-1.5 text-slate-300 group-hover:text-white">{muted ? 'Muted' : 'Sound'}</span>
            </button>
            <button 
              onClick={() => setShowHistory(true)}
              className="flex flex-col items-center group cursor-pointer border-0 bg-transparent"
             >
-              <div className="p-2.5 bg-brand-purple/10 rounded-xl border-2 border-brand-purple/20 group-active:scale-90 transition-transform shadow-sm">
-                <History className="w-5 h-5 text-brand-purple" />
+              <div className="p-2.5 bg-[#0a1f6b]/75 rounded-2xl border border-[#D4AF37]/30 group-active:scale-95 transition-transform shadow-md">
+                <History className="w-5 h-5 text-[#F8D37A]" />
               </div>
-              <span className="text-[8px] font-black uppercase mt-1 text-slate-400">History</span>
+              <span className="text-[8px] font-black uppercase mt-1.5 text-slate-300 group-hover:text-white">History</span>
            </button>
         </div>
 
@@ -209,22 +209,25 @@ export const Spinner = () => {
            <button 
              onClick={() => navigate('/referral')}
              className="flex flex-col items-center group cursor-pointer border-0 bg-transparent"
-           >
-              <div className="p-2.5 bg-brand-purple/10 rounded-xl border-2 border-brand-purple/20 group-active:scale-90 transition-transform shadow-sm">
-                <Users className="w-5 h-5 text-brand-purple" />
+            >
+              <div className="p-2.5 bg-[#0a1f6b]/75 rounded-2xl border border-[#D4AF37]/30 group-active:scale-95 transition-transform shadow-md">
+                <Users className="w-5 h-5 text-[#F8D37A]" />
               </div>
-              <span className="text-[8px] font-black uppercase mt-1 text-slate-400">Invite</span>
+              <span className="text-[8px] font-black uppercase mt-1.5 text-slate-300 group-hover:text-white">Invite</span>
            </button>
-           <button className="flex flex-col items-center group cursor-pointer border-0 bg-transparent">
-              <div className="p-2.5 bg-brand-purple/10 rounded-xl border-2 border-brand-purple/20 group-active:scale-90 transition-transform shadow-sm">
-                <Info className="w-5 h-5 text-brand-purple" />
+           <button 
+             onClick={() => navigate('/about-us')}
+             className="flex flex-col items-center group cursor-pointer border-0 bg-transparent"
+           >
+              <div className="p-2.5 bg-[#0a1f6b]/75 rounded-2xl border border-[#D4AF37]/30 group-active:scale-95 transition-transform shadow-md">
+                <Info className="w-5 h-5 text-[#F8D37A]" />
               </div>
-              <span className="text-[8px] font-black uppercase mt-1 text-slate-400">Info</span>
+              <span className="text-[8px] font-black uppercase mt-1.5 text-slate-300 group-hover:text-white">Info</span>
            </button>
         </div>
 
         {/* Wheel */}
-        <div className="relative w-[260px] h-[260px] rounded-full border-[10px] border-orange-500 glow-purple z-10 shadow-2xl overflow-hidden ring-8 ring-brand-purple/10">
+        <div className="relative w-[260px] h-[260px] rounded-full border-[8px] border-[#D4AF37] shadow-[0_0_25px_rgba(212,175,55,0.4)] z-10 overflow-hidden ring-8 ring-[#D4AF37]/15">
           <motion.div
             animate={controls}
             className="w-full h-full relative"
@@ -253,47 +256,47 @@ export const Spinner = () => {
             ))}
           </motion.div>
 
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-full z-20 flex items-center justify-center border-4 border-orange-600 shadow-xl">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-full z-20 flex items-center justify-center border-4 border-[#D4AF37] shadow-2xl">
              <div className="w-5 h-5 bg-gradient-to-br from-yellow-300 to-orange-500 rounded-md rotate-45 animate-pulse" />
           </div>
         </div>
 
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-8 bg-orange-400 z-30 pointer-events-none drop-shadow-xl" 
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-8 bg-amber-400 z-30 pointer-events-none drop-shadow-2xl" 
              style={{ clipPath: 'polygon(0% 0%, 100% 0%, 50% 100%)' }} />
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 bg-transparent">
         {/* Entry Fee Section */}
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between px-2">
-            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider font-mono">Select Entry Fee</span>
-            <div className="flex items-center gap-1">
-              <span className="text-[10px] font-bold text-brand-purple font-mono">Win up to</span>
-              <span className="text-[10px] font-mono font-black text-white bg-brand-purple px-2 py-0.5 rounded italic">5X</span>
+            <span className="text-[10px] font-black uppercase text-slate-350 tracking-widest font-mono">Select Entry Fee</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-extrabold text-[#F8D37A] font-mono leading-none">Win up to</span>
+              <span className="text-[10px] font-mono font-black text-slate-950 bg-gradient-to-r from-[#F8D37A] to-[#D4AF37] px-2 py-0.5 rounded italic leading-none">5X</span>
             </div>
           </div>
           
           <div className="grid grid-cols-4 gap-3">
              {packs.map((pack, i) => (
-               <button 
+                <button 
                   key={i} 
                   onClick={() => !spinning && setSelectedPack(i)}
                   disabled={spinning}
                   className={cn(
-                    "p-3 flex flex-col items-center gap-2 transition-all border-2 relative overflow-hidden rounded-[24px] cursor-pointer",
+                    "p-3 flex flex-col items-center gap-2 transition-all border relative overflow-hidden rounded-[24px] cursor-pointer",
                     selectedPack === i 
-                      ? "bg-brand-purple border-brand-purple shadow-xl scale-105" 
-                      : "bg-white border-slate-100 opacity-60 hover:opacity-100"
+                      ? "bg-gradient-to-b from-[#F8D37A] to-[#D4AF37] border-[#D4AF37] shadow-2xl scale-105" 
+                      : "bg-[#0a1f6b]/50 border-[#D4AF37]/20 opacity-80 hover:opacity-100 text-white"
                   )}
-               >
-                  <div className={`w-10 h-10 rounded-xl ${pack.color} border-2 border-white/20 flex items-center justify-center shadow-lg relative z-10`}>
-                     <CoinIcon size={20} />
+                >
+                  <div className={`w-10 h-10 rounded-xl bg-[#040d2d]/60 border border-[#D4AF37]/20 flex items-center justify-center shadow-md relative z-10`}>
+                     <CoinIcon size={20} className={selectedPack === i ? 'animate-pulse' : ''} />
                   </div>
-                  <span className={cn("text-sm font-black relative z-10 font-display", selectedPack === i ? "text-white" : "text-slate-900")}>{pack.coins}</span>
+                  <span className={cn("text-xs font-black relative z-10 font-display", selectedPack === i ? "text-[#040d2d]" : "text-white")}>{pack.coins}</span>
                   {selectedPack === i && (
-                    <motion.div layoutId="selector" className="absolute inset-0 bg-white/10" />
+                    <motion.div layoutId="selector" className="absolute inset-0 bg-white/15" />
                   )}
-               </button>
+                </button>
              ))}
           </div>
         </div>
@@ -307,11 +310,11 @@ export const Spinner = () => {
         </button>
       </div>
 
-      {/* Info Card */}
-      <div className="gaming-card p-4 flex gap-3 items-center bg-blue-500/10 border-blue-500/20 rounded-2xl">
-        <Info className="w-5 h-5 text-gaming-accent shrink-0" />
-        <p className="text-[10px] text-blue-200">
-          Pro Tip: Hit multipliers like <span className="font-extrabold text-yellow-400">5x</span> for massive coin payouts!
+       {/* Info Card */}
+      <div className="gaming-card p-4 flex gap-3 items-center bg-[#0a1f6b]/50 border border-[#D4AF37]/20 rounded-2xl">
+        <Info className="w-5 h-5 text-[#F8D37A] shrink-0" />
+        <p className="text-[10px] text-slate-300 leading-normal">
+          Pro Tip: Entry Packs with higher values yield massive <span className="font-extrabold text-[#F8D37A]">5X multipliers</span> for ultimate cash redemptions!
         </p>
       </div>
 
@@ -323,24 +326,24 @@ export const Spinner = () => {
               initial={{ scale: 0.9, opacity: 0, y: 30 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 30 }}
-              className="bg-[#111827] border-4 border-orange-500 rounded-[36px] w-full max-w-sm overflow-hidden flex flex-col p-8 text-center text-white shadow-2xl relative"
+              className="bg-[#040d2d] border border-[#D4AF37] rounded-[36px] w-full max-w-sm overflow-hidden flex flex-col p-8 text-center text-white shadow-2xl relative"
             >
               {spinOutcome.multiplier > 0 ? (
                 <>
-                  <div className="mx-auto w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center border-2 border-emerald-500/30 mb-4 animate-bounce">
+                  <div className="mx-auto w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center border-2 border-[#D4AF37]/40 mb-4 animate-bounce">
                     <CoinIcon size={44} />
                   </div>
-                  <h3 className="text-3xl font-display font-black text-yellow-400 italic tracking-tighter mb-2 uppercase">
+                  <h3 className="text-3xl font-display font-black text-[#F8D37A] italic tracking-tighter mb-2 uppercase">
                     BIG WIN!
                   </h3>
-                  <p className="text-slate-300 text-sm font-medium mb-5">
+                  <p className="text-slate-300 text-sm font-semibold mb-5">
                     Congratulations! You won with a <span className="text-emerald-400 font-extrabold">{spinOutcome.multiplier}x Multiplier</span>!
                   </p>
                   
-                  <div className="bg-slate-900/80 border border-white/5 rounded-2xl py-4 px-6 mb-6">
-                    <span className="text-[10px] font-black uppercase text-slate-400 block mb-1">TOTAL WINNINGS</span>
+                  <div className="bg-[#0a1f6b]/50 border border-[#D4AF37]/20 rounded-2xl py-4 px-6 mb-6">
+                    <span className="text-[10px] font-black uppercase text-slate-400 block mb-1 tracking-widest">TOTAL WINNINGS</span>
                     <div className="flex items-center justify-center gap-2">
-                      <span className="text-3xl font-black italic tracking-tighter text-yellow-300">
+                      <span className="text-3xl font-display font-black italic tracking-tighter text-[#F8D37A]">
                         {spinOutcome.win} Coins
                       </span>
                       <CoinIcon size={24} />
@@ -349,26 +352,26 @@ export const Spinner = () => {
 
                   <button
                     onClick={claimResult}
-                    className="w-full bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-500 hover:from-yellow-300 hover:to-yellow-400 text-slate-950 font-display font-black text-xl py-4 rounded-2xl shadow-[0_5px_0_#9a3412] hover:shadow-[0_4px_0_#9a3412] active:translate-y-[4px] active:shadow-none transition-all uppercase tracking-wider cursor-pointer"
+                    className="w-full gaming-button-yellow font-display font-black text-xl py-4 rounded-2xl active:translate-y-[4px] transition-all uppercase tracking-wider cursor-pointer"
                   >
                     CLAIM COINS
                   </button>
                 </>
               ) : (
                 <>
-                  <div className="mx-auto w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center border-2 border-red-500/20 mb-4">
-                    <X className="w-8 h-8 text-red-500" />
+                  <div className="mx-auto w-16 h-16 bg-rose-500/10 rounded-full flex items-center justify-center border-2 border-rose-500/20 mb-4">
+                    <X className="w-8 h-8 text-rose-500" />
                   </div>
-                  <h3 className="text-2xl font-display font-black text-red-500 italic tracking-tighter mb-2 uppercase">
+                  <h3 className="text-2xl font-display font-black text-rose-500 italic tracking-tighter mb-2 uppercase">
                     TRY AGAIN!
                   </h3>
-                  <p className="text-slate-400 text-xs mb-6">
+                  <p className="text-slate-350 text-xs mb-6">
                     Better luck next time! Hit the spin button again for another chance to win 5X payouts.
                   </p>
 
                   <button
                     onClick={claimResult}
-                    className="w-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white font-display font-black text-lg py-4 rounded-2xl transition-all uppercase tracking-wider cursor-pointer"
+                    className="w-full bg-[#0a1f6b] hover:bg-[#1239b3] border border-[#D4AF37]/25 hover:border-[#D4AF37]/50 text-white font-display font-black text-lg py-4 rounded-2xl transition-all uppercase tracking-wider cursor-pointer"
                   >
                     CLOSE & RETRY
                   </button>
@@ -384,33 +387,33 @@ export const Spinner = () => {
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-white rounded-3xl w-full max-w-md overflow-hidden flex flex-col max-h-[80vh] shadow-2xl shadow-brand-purple/20"
+                className="bg-[#040d2d] border border-[#D4AF37]/35 rounded-3xl w-full max-w-md overflow-hidden flex flex-col max-h-[80vh] shadow-2xl"
               >
-                <div className="p-6 bg-brand-purple flex items-center justify-between">
+                <div className="p-6 bg-gradient-to-r from-[#0c247d] to-[#0a1f6b] border-b border-[#D4AF37]/25 flex items-center justify-between">
                   <h3 className="text-xl font-black text-white italic tracking-tighter font-display">SPIN HISTORY</h3>
                   <button onClick={() => setShowHistory(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer border-0 bg-transparent">
-                    <X className="w-6 h-6 text-white/60" />
+                    <X className="w-6 h-6 text-[#F8D37A]" />
                   </button>
                 </div>
                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
                   {history.length === 0 && (
-                    <div className="py-20 text-center text-slate-300 font-black italic uppercase">No history yet</div>
+                    <div className="py-20 text-center text-slate-400 font-extrabold italic uppercase">No spin attempts yet</div>
                   )}
                   {history.map((item) => (
-                    <div key={item.$id} className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center justify-between">
+                    <div key={item.$id} className="bg-[#0a1f6b]/40 border border-[#D4AF37]/15 rounded-2xl p-4 flex items-center justify-between">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[10px] font-black text-slate-400 uppercase">Bet:</span>
-                          <span className="text-xs font-bold text-slate-900">{item.bet}</span>
+                          <span className="text-[10px] font-black text-[#F8D37A] uppercase tracking-wider font-mono">BET AMOUNT:</span>
+                          <span className="text-xs font-black text-white">{item.bet}</span>
                         </div>
-                        <p className="text-[10px] text-slate-400 font-medium">{new Date(item.timestamp).toLocaleString()}</p>
+                        <p className="text-[9px] text-[#F8D37A]/60 font-extrabold">{new Date(item.timestamp).toLocaleString()}</p>
                       </div>
                       <div className="text-right">
                         <div className="flex items-center gap-2 justify-end">
-                          <span className="text-lg font-black italic tracking-tighter text-coin-gold">{item.win > 0 ? `+${item.win}` : '0'}</span>
+                          <span className="text-lg font-black italic tracking-tighter text-[#F8D37A]">{item.win > 0 ? `+${item.win}` : '0'}</span>
                           <CoinIcon size={16} />
                         </div>
-                        <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${item.multiplier > 0 ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-600'}`}>
+                        <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${item.multiplier > 0 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
                           {item.multiplier > 0 ? `${item.multiplier}x Multiplier` : 'No Win'}
                         </span>
                       </div>

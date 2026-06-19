@@ -103,18 +103,18 @@ export const Tasks = () => {
         className="flex flex-col gap-6"
       >
       <div className="flex flex-col gap-4">
-        <h2 className="text-2xl font-display font-black italic tracking-tighter text-brand-purple">EARN COINS</h2>
+        <h2 className="text-2xl font-display font-black italic tracking-tighter text-[#F8D37A]">EARN COINS</h2>
         
         {/* Search & Filter */}
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#D4AF37]" />
             <input 
               type="text" 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search tasks..." 
-              className="w-full bg-white border border-slate-200 rounded-2xl py-3 pl-12 pr-4 text-sm font-bold focus:outline-none focus:border-brand-purple focus:ring-1 focus:ring-brand-purple/20 transition-all shadow-sm"
+              className="w-full bg-[#0a1f6b]/85 border border-[#D4AF37]/35 text-white placeholder-slate-400 rounded-2xl py-3 pl-12 pr-4 text-sm font-bold focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/20 transition-all shadow-sm"
             />
           </div>
         </div>
@@ -125,10 +125,10 @@ export const Tasks = () => {
             <button
               key={cat}
               onClick={() => setActiveTab(cat)}
-              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all whitespace-nowrap shadow-sm ${
+              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all whitespace-nowrap shadow-sm cursor-pointer ${
                 activeTab === cat 
-                ? 'bg-brand-purple text-white' 
-                : 'bg-white text-slate-400 border border-slate-200'
+                ? 'bg-gradient-to-r from-[#F8D37A] via-[#D4AF37] to-[#B8860B] text-slate-950 shadow-md font-black' 
+                : 'bg-[#0a1f6b]/70 text-slate-300 border border-[#D4AF37]/20 hover:text-white'
               }`}
             >
               {cat}
@@ -152,7 +152,7 @@ export const Tasks = () => {
             </div>
           ))
         ) : filteredTasks.length === 0 ? (
-          <div className="col-span-2 text-center text-slate-300 font-bold py-10 uppercase text-xs tracking-widest">No tasks found</div>
+          <div className="col-span-2 text-center text-slate-400 font-bold py-10 uppercase text-xs tracking-widest">No tasks found</div>
         ) : (
           filteredTasks.map((task, i) => {
             const TaskIcon = iconMap[task.category] || iconMap['All'];
@@ -162,9 +162,9 @@ export const Tasks = () => {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: i * 0.05 }}
-                className="gaming-card p-4 flex flex-col items-center text-center gap-3 group hover:bg-slate-50 transition-all cursor-pointer border border-slate-100 shadow-sm"
+                className="gaming-card p-4 flex flex-col items-center text-center gap-3 group hover:border-[#D4AF37]/50 hover:bg-[#0c247d]/40 transition-all cursor-pointer shadow-sm"
               >
-                <div className="w-16 h-16 rounded-2xl bg-brand-purple/5 flex items-center justify-center border border-brand-purple/10 shadow-inner group-hover:border-brand-purple/30 overflow-hidden transition-all">
+                <div className="w-16 h-16 rounded-2xl bg-[#06164A] flex items-center justify-center border border-[#D4AF37]/20 shadow-inner group-hover:border-[#D4AF37]/45 overflow-hidden transition-all">
                   {task.imageUrl ? (
                     <img 
                       src={task.imageUrl} 
@@ -173,23 +173,23 @@ export const Tasks = () => {
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <TaskIcon className="w-8 h-8 text-brand-purple" />
+                    <TaskIcon className="w-8 h-8 text-[#D4AF37]" />
                   )}
                 </div>
                 
                 <div className="flex flex-col gap-1 min-h-[40px] justify-center">
-                  <h4 className="font-black text-xs text-slate-900 leading-tight">{task.title}</h4>
-                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">{task.category}</p>
+                  <h4 className="font-black text-xs text-white leading-tight">{task.title}</h4>
+                  <p className="text-[9px] text-[#F8D37A] font-bold uppercase tracking-tighter">{task.category}</p>
                 </div>
 
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-brand-purple/5 border border-brand-purple/10 w-full justify-center">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#F8D37A]/10 border border-[#D4AF37]/30 w-full justify-center">
                   <CoinIcon size={14} />
-                  <span className="font-display font-bold text-sm text-brand-purple">{task.reward}</span>
+                  <span className="font-display font-bold text-sm text-[#F8D37A]">{task.reward}</span>
                 </div>
                 
                 <button 
                   onClick={() => handleStartTask(task)}
-                  className="w-full py-2 bg-brand-purple text-white text-[10px] font-black uppercase rounded-lg shadow-lg hover:bg-brand-purple/90 transition-all"
+                  className="w-full py-2.5 bg-gradient-to-b from-[#F8D37A] to-[#D4AF37] hover:from-[#fff] hover:to-[#F8D37A] text-slate-950 text-[10px] font-black uppercase rounded-xl shadow-md transition-all active:scale-[97%]"
                 >
                   START
                 </button>

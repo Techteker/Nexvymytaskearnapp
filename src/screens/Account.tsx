@@ -10,19 +10,19 @@ import { useToast } from '../context/ToastContext';
 import { SEO } from '../components/SEO';
 
 const ProfileStat = ({ label, value, icon: Icon, isCoin, color, secondaryValue }: any) => (
-  <div className="bg-slate-50 border border-slate-100 px-4 py-3 rounded-2xl flex-1 flex flex-col items-center gap-1 group hover:border-brand-purple/20 shadow-sm transition-all">
+  <div className="bg-[#040d2d]/60 border border-[#D4AF37]/25 px-4 py-3 rounded-2xl flex-1 flex flex-col items-center gap-1 group hover:border-[#D4AF37]/55 shadow-sm transition-all">
     {isCoin ? (
-      <CoinIcon size={16} className="mb-1" />
+      <CoinIcon size={16} className="mb-1 animate-pulse" />
     ) : (
-      <Icon className={`w-4 h-4 ${color} mb-1`} />
+      <Icon className={`w-4 h-4 text-[#F8D37A] mb-1`} />
     )}
     <div className="flex flex-col items-center leading-none">
-      <span className="text-lg font-black text-slate-900">{value}</span>
+      <span className="text-lg font-black text-white">{value}</span>
       {secondaryValue && (
-        <span className="text-[7px] text-slate-400 font-black mt-0.5">{secondaryValue}</span>
+        <span className="text-[7px] text-[#F8D37A] font-extrabold mt-0.5">{secondaryValue}</span>
       )}
     </div>
-    <p className="text-[8px] text-slate-400 uppercase font-bold tracking-widest">{label}</p>
+    <p className="text-[8px] text-slate-350 uppercase font-black tracking-widest leading-none mt-1">{label}</p>
   </div>
 );
 
@@ -117,17 +117,17 @@ const Profile = () => {
         className="flex flex-col gap-6"
       >
       {/* Header Card */}
-      <div className="gaming-card p-8 bg-white border-slate-100 relative overflow-hidden flex flex-col items-center text-center shadow-2xl">
-        <div className="absolute top-0 right-0 p-4 opacity-5 text-slate-900">
+      <div className="gaming-card p-8 bg-gradient-to-br from-[#0c247d] via-[#1239b3] to-[#0a1f6b] border border-[#D4AF37]/35 relative overflow-hidden flex flex-col items-center text-center shadow-2xl">
+        <div className="absolute top-0 right-0 p-4 opacity-5 text-white">
             <User size={120} />
         </div>
         
         {isEditing ? (
           <div className="w-full flex flex-col items-center gap-4 relative z-10 animate-fade-in">
             <div className="relative mb-2 select-none group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-              <div className="w-24 h-24 rounded-3xl overflow-hidden border-4 border-brand-purple shadow-2xl relative bg-slate-100 flex items-center justify-center">
+              <div className="w-24 h-24 rounded-3xl overflow-hidden border-4 border-[#D4AF37] shadow-2xl relative bg-[#040d2d] flex items-center justify-center">
                 {uploading ? (
-                  <Loader2 className="w-8 h-8 text-brand-purple animate-spin" />
+                  <Loader2 className="w-8 h-8 text-[#D4AF37] animate-spin" />
                 ) : (
                   <img 
                     src={editPhotoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${editUsername || 'Guest'}`} 
@@ -146,34 +146,34 @@ const Profile = () => {
                 accept="image/*" 
                 className="hidden" 
               />
-              <div className="absolute -bottom-1 -right-1 bg-brand-purple p-1.5 rounded-lg shadow-lg border border-white text-white">
+              <div className="absolute -bottom-1 -right-1 bg-[#D4AF37] p-1.5 rounded-lg shadow-lg border border-white text-[#040d2d]">
                 <Camera size={12} />
               </div>
             </div>
             
-            <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest italic -mt-1 active:scale-95 transition-transform">
+            <p className="text-[9px] text-[#F8D37A] font-extrabold uppercase tracking-widest italic -mt-1 active:scale-95 transition-transform">
               Click Avatar to Upload File
             </p>
 
             <div className="w-full text-left">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Gamer Tag / Name</label>
+              <label className="text-[9px] font-black text-slate-350 uppercase tracking-widest pl-1">Gamer Tag / Name</label>
               <input 
                 type="text" 
                 value={editUsername}
                 onChange={(e) => setEditUsername(e.target.value)}
                 placeholder="Enter unique tag..." 
-                className="w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl py-2 px-4 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-purple transition-all"
+                className="w-full mt-1 bg-[#040d2d]/80 border border-[#D4AF37]/35 rounded-xl py-2 px-4 text-xs font-bold text-white focus:outline-none focus:border-[#D4AF37] transition-all"
               />
             </div>
 
             <div className="w-full text-left">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Gamer Photo URL (optional)</label>
+              <label className="text-[9px] font-black text-slate-350 uppercase tracking-widest pl-1">Gamer Photo URL (optional)</label>
               <input 
                 type="text" 
                 value={editPhotoURL}
                 onChange={(e) => setEditPhotoURL(e.target.value)}
                 placeholder="Or paste direct image URL..." 
-                className="w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl py-2 px-4 text-[10px] font-mono text-slate-600 focus:outline-none focus:border-brand-purple transition-all"
+                className="w-full mt-1 bg-[#040d2d]/80 border border-[#D4AF37]/35 rounded-xl py-2 px-4 text-[10px] font-mono text-slate-300 focus:outline-none focus:border-[#D4AF37] transition-all"
               />
             </div>
 
@@ -181,10 +181,10 @@ const Profile = () => {
               <button 
                 onClick={handleSaveProfile}
                 disabled={saving || uploading}
-                className="flex-1 py-2.5 rounded-xl bg-brand-purple text-white text-[10px] font-black uppercase hover:bg-brand-purple/90 active:scale-95 transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-purple-500/20 disabled:opacity-50 cursor-pointer"
+                className="flex-1 py-2.5 rounded-xl bg-gradient-to-b from-[#F8D37A] to-[#D4AF37] text-[#040d2d] text-[10px] font-black uppercase hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/20 disabled:opacity-50 cursor-pointer"
               >
                 {saving ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#040d2d]" />
                 ) : (
                   <Save size={12} />
                 )}
@@ -197,7 +197,7 @@ const Profile = () => {
                   setIsEditing(false);
                 }}
                 disabled={saving}
-                className="py-2.5 px-4 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 active:scale-95 transition-all text-[10px] font-black uppercase flex items-center justify-center cursor-pointer"
+                className="py-2.5 px-4 rounded-xl bg-[#040d2d] text-slate-300 hover:bg-[#0a1f6b] active:scale-95 transition-all text-[10px] font-black uppercase flex items-center justify-center cursor-pointer border border-[#D4AF37]/20"
               >
                 Cancel
               </button>
@@ -206,31 +206,31 @@ const Profile = () => {
         ) : (
           <>
             <div className="relative mb-6">
-              <div className="w-24 h-24 rounded-3xl overflow-hidden border-4 border-white shadow-2xl transform hover:rotate-6 transition-transform relative bg-slate-100">
+              <div className="w-24 h-24 rounded-3xl overflow-hidden border-4 border-[#D4AF37] shadow-2xl transform hover:rotate-6 transition-transform relative bg-[#040d2d]">
                 <img 
                   src={user?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username || 'Guest'}`} 
                   alt="Avatar"
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="absolute -bottom-2 -right-2 bg-brand-purple p-2 rounded-xl shadow-lg border-2 border-white">
-                <Award className="w-5 h-5 text-white" />
+              <div className="absolute -bottom-2 -right-2 bg-gradient-to-b from-[#F8D37A] to-[#D4AF37] p-2 rounded-xl shadow-lg border-2 border-[#0c247d]">
+                <Award className="w-5 h-5 text-[#040d2d]" />
               </div>
             </div>
             
             <div className="relative z-10 w-full">
-              <h2 className="text-3xl font-display font-black text-brand-purple italic tracking-tighter mb-1 uppercase leading-none">
+              <h2 className="text-3xl font-display font-black text-[#F8D37A] italic tracking-tighter mb-1 uppercase leading-none">
                 {user?.username || 'GUEST USER'}
               </h2>
               <div className="flex items-center justify-center gap-2 mb-4 font-bold">
                  <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50" />
-                 <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{user?.email}</p>
+                 <p className="text-[10px] text-slate-300 font-extrabold uppercase tracking-widest">{user?.email}</p>
               </div>
 
               {/* Edit button */}
               <button 
                 onClick={() => setIsEditing(true)}
-                className="mb-6 px-4 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 hover:text-brand-purple hover:border-brand-purple/30 text-[9px] font-black uppercase tracking-widest transition-all inline-flex items-center gap-1.5 hover:scale-105 active:scale-95 cursor-pointer shadow-sm"
+                className="mb-6 px-4 py-1.5 rounded-lg border border-[#D4AF37]/30 bg-[#040d2d]/60 text-[#F8D37A] hover:text-white hover:border-[#D4AF37]/60 text-[9px] font-black uppercase tracking-widest transition-all inline-flex items-center gap-1.5 hover:scale-105 active:scale-95 cursor-pointer shadow-md"
               >
                 <Edit3 size={11} /> Edit Profile
               </button>
@@ -267,18 +267,18 @@ const Profile = () => {
           <button 
             key={i} 
             onClick={() => item.path !== '#' && navigate(item.path)}
-            className="p-5 flex items-center justify-between group bg-white border border-slate-50 rounded-[28px] hover:border-brand-purple/20 active:scale-95 transition-all text-left shadow-lg"
+            className="p-5 flex items-center justify-between group bg-[#0a1f6b]/50 border border-[#D4AF37]/15 rounded-[24px] hover:border-[#D4AF37]/45 active:scale-95 transition-all text-left shadow-lg cursor-pointer"
           >
             <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-2xl bg-slate-50 ${item.color}`}>
+              <div className="p-3 rounded-2xl bg-[#040d2d]/60 border border-[#D4AF37]/15 text-[#F8D37A]">
                 <item.icon size={20} />
               </div>
               <div>
-                <span className="font-display font-black text-slate-900 tracking-tight block leading-none text-base uppercase italic">{item.label}</span>
-                <span className="text-[9px] text-slate-400 font-black uppercase mt-1 block">Account Settings</span>
+                <span className="font-display font-black text-white tracking-tight block leading-none text-base uppercase italic group-hover:text-[#F8D37A] transition-colors">{item.label}</span>
+                <span className="text-[9px] text-[#F8D37A]/80 font-extrabold uppercase mt-1.5 block">Account Settings</span>
               </div>
             </div>
-            <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-brand-purple group-hover:translate-x-1 transition-all" />
+            <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-[#F8D37A] group-hover:translate-x-1 transition-all" />
           </button>
         ))}
         
@@ -286,36 +286,36 @@ const Profile = () => {
         {(user?.role === 'admin' || user?.role === 'super_admin') && (
            <button 
              onClick={() => navigate('/admin')}
-             className="p-5 flex items-center justify-between group bg-amber-50 border border-amber-100 rounded-[28px] hover:border-amber-300 transition-all text-left mt-2 shadow-md shadow-amber-500/5"
+             className="p-5 flex items-center justify-between group bg-amber-950/20 border border-amber-500/30 rounded-[24px] hover:border-amber-400/60 active:scale-95 transition-all text-left mt-2 shadow-lg cursor-pointer"
            >
              <div className="flex items-center gap-4">
-               <div className={`p-3 rounded-2xl bg-white text-amber-500 shadow-sm`}>
+               <div className="p-3 rounded-2xl bg-[#040d2d]/60 text-amber-400 border border-amber-500/25">
                  <Shield size={20} />
                </div>
                <div>
-                  <span className="font-display font-black text-amber-600 tracking-tight block leading-none uppercase italic">Admin Dashboard</span>
-                  <span className="text-[9px] text-amber-600/60 font-black uppercase mt-1 block">Management Panel</span>
+                  <span className="font-display font-black text-amber-400 tracking-tight block leading-none uppercase italic">Admin Dashboard</span>
+                  <span className="text-[9px] text-amber-500/60 font-black uppercase mt-1.5 block">Management Panel</span>
                </div>
              </div>
-             <ChevronRight className="w-5 h-5 text-amber-400 group-hover:text-amber-600 group-hover:translate-x-1 transition-all" />
+             <ChevronRight className="w-5 h-5 text-amber-450 group-hover:text-amber-350 group-hover:translate-x-1 transition-all" />
            </button>
         )}
 
         {/* Logout */}
         <button 
           onClick={handleLogout}
-          className="p-5 flex items-center justify-between group bg-rose-50 border border-rose-100 rounded-[28px] hover:border-rose-300 transition-all text-left mt-4 shadow-xl shadow-rose-500/5"
+          className="p-5 flex items-center justify-between group bg-rose-950/15 border border-rose-500/30 rounded-[24px] hover:border-rose-450/60 active:scale-95 transition-all text-left mt-4 shadow-xl cursor-pointer"
         >
           <div className="flex items-center gap-4">
-            <div className={`p-3 rounded-2xl bg-white text-rose-500 shadow-sm`}>
+            <div className="p-3 rounded-2xl bg-[#040d2d]/60 text-rose-400 border border-rose-500/25">
               <LogOut size={20} />
             </div>
             <div>
-               <span className="font-display font-black text-rose-600 tracking-tight block leading-none uppercase italic">Logout</span>
-               <span className="text-[9px] text-rose-600/60 font-black uppercase mt-1 block">Exit Session</span>
+               <span className="font-display font-black text-rose-400 tracking-tight block leading-none uppercase italic">Logout</span>
+               <span className="text-[9px] text-rose-500/60 font-black uppercase mt-1.5 block">Exit Session</span>
             </div>
           </div>
-          <ChevronRight className="w-5 h-5 text-rose-400 group-hover:text-rose-600 group-hover:translate-x-1 transition-all" />
+          <ChevronRight className="w-5 h-5 text-rose-450 group-hover:text-rose-350 group-hover:translate-x-1 transition-all" />
         </button>
       </div>
 
