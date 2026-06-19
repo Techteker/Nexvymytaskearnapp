@@ -59,11 +59,6 @@ export const Withdraw = () => {
       const data = await apiService.withdraw(withdrawAmount, selected, details);
       if (data.error) throw new Error(data.error);
       showToast("Withdrawal submitted successfully!", 'success');
-      await apiService.createNotification(
-        'Payout Request Received! 💸',
-        `Successfully logged withdrawal of $${(withdrawAmount / 1000).toFixed(2)} (${withdrawAmount} coins) via ${selected.toUpperCase()} to ${details}. Status: Pending review.`,
-        user?.uid || user?.$id
-      );
       setAmount('');
       setDetails('');
       await refreshUser();

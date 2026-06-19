@@ -19,7 +19,7 @@ const DAYS = [
 ];
 
 export const DailyGift = () => {
-  const { user, refreshUser } = useAuth();
+  const { refreshUser } = useAuth();
   const { showToast } = useToast();
   const [loading, setLoading] = React.useState(false);
   const [status, setStatus] = React.useState({
@@ -79,11 +79,6 @@ export const DailyGift = () => {
         colors: ['#fbbf24', '#ffffff']
       });
       showToast(`Claimed ${data.reward} coins!`, 'success');
-      await apiService.createNotification(
-        'Daily Gift Claimed! 🎁',
-        `Fantastic! You logged in and claimed your daily streak reward of ${data.reward} coins. Keep your current streak going!`,
-        user?.uid || user?.$id
-      );
       await refreshUser();
       await fetchStatus();
     } catch (err: any) {

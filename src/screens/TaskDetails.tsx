@@ -112,11 +112,6 @@ export const TaskDetails = () => {
       if ((res as any).error) throw new Error((res as any).error);
       
       showToast('Task submitted for review!', 'success');
-      await apiService.createNotification(
-        'Task Proof Submitted! 📝',
-        `Successfully received proofs for task "${task?.title || 'Coin Quest'}". Status is currently Pending Administrator review.`,
-        user?.uid || user?.$id
-      );
       setStatus('pending');
       setSubmitted(true);
       refreshUser();

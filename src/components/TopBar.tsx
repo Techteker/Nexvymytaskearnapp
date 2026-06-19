@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { CoinIcon } from './CoinIcon';
 import { useAuth } from '../context/AuthContext';
 import { Bell, X } from 'lucide-react';
@@ -10,7 +9,6 @@ import { client, APPWRITE_CONFIG } from '../lib/appwrite';
 
 export const TopBar = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifs, setShowNotifs] = useState(false);
 
@@ -67,32 +65,19 @@ export const TopBar = () => {
   return (
     <div className="flex items-center justify-between gap-4 mb-8 relative z-50">
       <div className="flex items-center gap-3">
-        {/* Mobile profile card - only visible on small screens to prevent duplication with Desktop Sidebar */}
-        <div className="flex lg:hidden items-center gap-3">
-          <div className="relative">
-            <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-brand-purple shadow-[0_0_20px_rgba(124,58,237,0.2)] bg-gaming-blue-700">
-              <img 
-                src={user?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username || 'Guest'}`} 
-                alt="Avatar"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-[#f5f3ff]" />
+        <div className="relative">
+          <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-brand-purple shadow-[0_0_20px_rgba(124,58,237,0.2)] bg-gaming-blue-700">
+            <img 
+              src={user?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username || 'Guest'}`} 
+              alt="Avatar"
+              className="w-full h-full object-cover"
+            />
           </div>
-          <div>
-            <h3 className="font-display font-bold text-slate-900 leading-tight">{user?.username || 'Loading...'}</h3>
-            <p className="text-[10px] text-brand-purple font-semibold uppercase tracking-wider">Level {user?.level || 1}</p>
-          </div>
+          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-[#f5f3ff]" />
         </div>
-
-        {/* Premium Desktop-only Greeting & Date */}
-        <div className="hidden lg:block">
-          <span className="text-[10px] font-black text-brand-purple uppercase tracking-widest block mb-0.5 animate-pulse">
-            ✨ Premium Cloud Dashboard
-          </span>
-          <h2 className="font-display font-black text-2xl tracking-tight text-indigo-950 leading-none">
-            Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-purple-600 font-extrabold italic">{user?.username || 'Player'}</span>!
-          </h2>
+        <div>
+          <h3 className="font-display font-bold text-slate-900 leading-tight">{user?.username || 'Loading...'}</h3>
+          <p className="text-[10px] text-brand-purple font-semibold uppercase tracking-wider">Level {user?.level || 1}</p>
         </div>
       </div>
 
@@ -130,20 +115,9 @@ export const TopBar = () => {
                     <div key={i} className="p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors">
                       <p className="text-xs font-bold text-slate-800 mb-1">{n.title}</p>
                       <p className="text-[10px] text-slate-400 leading-tight">{n.message}</p>
-                      <p className="text-[8px] text-brand-purple mt-2 uppercase font-black">{new Date(n.timestamp || n.date || Date.now()).toLocaleDateString()}</p>
+                      <p className="text-[8px] text-brand-purple mt-2 uppercase font-black">{new Date(n.timestamp).toLocaleDateString()}</p>
                     </div>
                   ))}
-                </div>
-                <div className="p-2 border-t border-slate-100 bg-slate-50 text-center">
-                  <button 
-                    onClick={() => {
-                      setShowNotifs(false);
-                      navigate('/notifications');
-                    }}
-                    className="text-[10.5px] font-black uppercase text-brand-purple hover:underline cursor-pointer block w-full text-center py-1"
-                  >
-                    View All Inbox
-                  </button>
                 </div>
               </motion.div>
             )}

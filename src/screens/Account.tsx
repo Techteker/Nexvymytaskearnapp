@@ -27,24 +27,9 @@ const ProfileStat = ({ label, value, icon: Icon, isCoin, color, secondaryValue }
 );
 
 const Profile = () => {
-  const { user, logout, loading: authLoading, refreshUser, isSimulationMode, setIsSimulationMode } = useAuth();
+  const { user, logout, loading: authLoading, refreshUser } = useAuth();
   const navigate = useNavigate();
   const { showToast } = useToast();
-
-  const handleToggleSimulation = () => {
-    const nextSim = !isSimulationMode;
-    if (nextSim) {
-      localStorage.setItem('simulation_mode_active', 'true');
-      setIsSimulationMode(true);
-      showToast('Activated Offline Simulation Mode!', 'success');
-    } else {
-      localStorage.removeItem('simulation_mode_active');
-      localStorage.removeItem('simulated_coins');
-      setIsSimulationMode(false);
-      showToast('Deactivated Simulation. Trying Cloud DB...', 'info');
-    }
-    refreshUser();
-  };
 
   const [isEditing, setIsEditing] = React.useState(false);
   const [editUsername, setEditUsername] = React.useState('');
@@ -315,31 +300,6 @@ const Profile = () => {
              <ChevronRight className="w-5 h-5 text-amber-400 group-hover:text-amber-600 group-hover:translate-x-1 transition-all" />
            </button>
         )}
-
-        {/* Simulation Toggle */}
-        <button 
-          onClick={handleToggleSimulation}
-          className={`p-5 flex items-center justify-between group rounded-[28px] transition-all text-left mt-2 shadow-md ${
-            isSimulationMode 
-              ? 'bg-amber-50 border border-amber-200 hover:border-amber-400' 
-              : 'bg-indigo-50 border border-indigo-100 hover:border-indigo-200'
-          }`}
-        >
-          <div className="flex items-center gap-4">
-            <div className={`p-3 rounded-2xl bg-white shadow-sm ${isSimulationMode ? 'text-amber-500' : 'text-indigo-500'}`}>
-              <Shield size={20} />
-            </div>
-            <div>
-               <span className={`font-display font-black tracking-tight block leading-none uppercase italic ${isSimulationMode ? 'text-amber-750 font-bold' : 'text-indigo-750 font-bold'}`}>
-                 {isSimulationMode ? 'Disable Simulation' : 'Enable Simulation'}
-               </span>
-               <span className={`text-[9px] font-black uppercase mt-1 block ${isSimulationMode ? 'text-amber-605' : 'text-indigo-605'}`}>
-                 {isSimulationMode ? 'Running in Offline Simulator' : 'Test offline features locally'}
-               </span>
-            </div>
-          </div>
-          <ChevronRight className={`w-5 h-5 group-hover:translate-x-1 transition-all ${isSimulationMode ? 'text-amber-404 group-hover:text-amber-606' : 'text-indigo-404 group-hover:text-indigo-606'}`} />
-        </button>
 
         {/* Logout */}
         <button 

@@ -141,7 +141,7 @@ export const Tasks = () => {
       <AdBanner type="small" />
 
       {/* Task Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         {loading ? (
           Array(6).fill(0).map((_, i) => (
             <div key={i} className="gaming-card p-4 flex flex-col items-center gap-3">
@@ -152,7 +152,7 @@ export const Tasks = () => {
             </div>
           ))
         ) : filteredTasks.length === 0 ? (
-          <div className="col-span-2 lg:col-span-3 xl:col-span-4 text-center text-slate-300 font-bold py-10 uppercase text-xs tracking-widest">No tasks found</div>
+          <div className="col-span-2 text-center text-slate-300 font-bold py-10 uppercase text-xs tracking-widest">No tasks found</div>
         ) : (
           filteredTasks.map((task, i) => {
             const TaskIcon = iconMap[task.category] || iconMap['All'];
@@ -162,9 +162,9 @@ export const Tasks = () => {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: i * 0.05 }}
-                className="bg-white border border-slate-100 shadow-[0_4px_20px_rgba(109,40,217,0.01)] hover:shadow-[0_12px_36px_rgba(109,40,217,0.06)] rounded-[24px] p-4 flex flex-col items-center text-center gap-3 group hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                className="gaming-card p-4 flex flex-col items-center text-center gap-3 group hover:bg-slate-50 transition-all cursor-pointer border border-slate-100 shadow-sm"
               >
-                <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100/80 shadow-inner group-hover:border-brand-purple/20 overflow-hidden transition-all duration-350">
+                <div className="w-16 h-16 rounded-2xl bg-brand-purple/5 flex items-center justify-center border border-brand-purple/10 shadow-inner group-hover:border-brand-purple/30 overflow-hidden transition-all">
                   {task.imageUrl ? (
                     <img 
                       src={task.imageUrl} 
@@ -173,23 +173,23 @@ export const Tasks = () => {
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <TaskIcon className="w-6 h-6 text-brand-purple" />
+                    <TaskIcon className="w-8 h-8 text-brand-purple" />
                   )}
                 </div>
                 
                 <div className="flex flex-col gap-1 min-h-[40px] justify-center">
-                  <h4 className="font-black text-[11.5px] text-slate-800 leading-tight line-clamp-2">{task.title}</h4>
-                  <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider">{task.category}</p>
+                  <h4 className="font-black text-xs text-slate-900 leading-tight">{task.title}</h4>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">{task.category}</p>
                 </div>
 
-                <div className="flex items-center gap-1.5 bg-brand-purple/5 py-1 px-3 rounded-full border border-brand-purple/10 w-full justify-center">
-                  <CoinIcon size={12} />
-                  <span className="font-display font-bold text-xs text-brand-purple">+{task.reward}</span>
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-brand-purple/5 border border-brand-purple/10 w-full justify-center">
+                  <CoinIcon size={14} />
+                  <span className="font-display font-bold text-sm text-brand-purple">{task.reward}</span>
                 </div>
                 
                 <button 
                   onClick={() => handleStartTask(task)}
-                  className="w-full py-2 bg-gradient-to-r from-brand-purple to-purple-600 rounded-xl text-[10px] font-black text-white uppercase tracking-wider shadow-[0_4px_12px_rgba(109,40,217,0.15)] group-hover:shadow-[0_6px_16px_rgba(109,40,217,0.25)] transition-all duration-300 transform group-hover:scale-[1.02]"
+                  className="w-full py-2 bg-brand-purple text-white text-[10px] font-black uppercase rounded-lg shadow-lg hover:bg-brand-purple/90 transition-all"
                 >
                   START
                 </button>

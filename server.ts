@@ -596,7 +596,7 @@ async function startServer() {
     
     app.use(vite.middlewares);
 
-    app.get("*all", async (req, res, next) => {
+    app.get("/*all", async (req, res, next) => {
       try {
         const url = req.originalUrl;
         let html = fs.readFileSync(path.resolve(process.cwd(), "index.html"), "utf-8");
@@ -622,7 +622,7 @@ async function startServer() {
       }
     }));
 
-    app.get("*all", (req, res) => {
+    app.get("/*all", (req, res) => {
       try {
         const url = req.originalUrl;
         const html = fs.readFileSync(path.join(distPath, "index.html"), "utf-8");

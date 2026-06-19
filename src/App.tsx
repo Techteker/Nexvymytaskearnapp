@@ -30,7 +30,6 @@ import { NotFound } from './screens/NotFound';
 import { Download } from './screens/Download';
 import { ShopEarnHome } from './screens/ShopEarnHome';
 import { OfferDetails } from './screens/OfferDetails';
-import { Notifications } from './screens/Notifications';
 import { apiService } from './services/api';
 
 // Admin static loads
@@ -158,7 +157,6 @@ const AppContent = () => {
         <Route path="/quiz/:id" element={<ProtectedRoute><Layout><QuizGame /></Layout></ProtectedRoute>} />
         <Route path="/task/:id" element={<ProtectedRoute><Layout><TaskDetails /></Layout></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Layout><Profile /></Layout></ProtectedRoute>} />
-        <Route path="/notifications" element={<ProtectedRoute><Layout><Notifications /></Layout></ProtectedRoute>} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/about" element={<AboutUs />} />
         <Route path="/about-us" element={<AboutUs />} />
