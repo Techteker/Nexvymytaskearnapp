@@ -164,11 +164,12 @@ export const AboutUs = () => {
                     Our Story
                   </span>
                   <h3 className="text-xl font-black text-slate-900 tracking-tight leading-tight uppercase font-display mt-3">
-                    India's Micro-Task Pioneers
+                    India's Premium Micro-Task & Rewards Platform
                   </h3>
-                  <p className="text-xs text-slate-400 font-medium leading-relaxed mt-1">
-                    Redefining user engagement, trivia play, and brand marketing commissions.
-                  </p>
+                  <div className="text-xs text-slate-600 font-medium leading-relaxed mt-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <p className="mb-2"><strong>What is Nexvy?</strong> Nexvy is an all-in-one gamified digital earning and merchant cashback ecosystem designed for smart users across India. It serves as a secure gateway that rewards daily actions with instant real payout streams.</p>
+                    <p>Our platform handles commission distribution transparently from top commercial entities to reward our active user base.</p>
+                  </div>
                 </div>
 
                 <div className="h-[1px] bg-slate-100 w-full" />
@@ -183,8 +184,13 @@ export const AboutUs = () => {
                         Our Vision & Mission
                       </h4>
                       <p className="text-xs text-slate-500 font-medium leading-relaxed mt-1">
-                        We aim to bridge the gap between premium consumer brands looking for organic consumer actions (S2S research, quizzes, video reviews) and energetic microtask users in India. We return payouts transparently.
+                        We aim to bridge the gap between premium global consumer brands seeking organic user insights and high-quality audience pools in India. Our core missions are:
                       </p>
+                      <ul className="text-xs text-slate-500 mt-2 space-y-1.5 pl-4 list-disc font-medium">
+                        <li><strong>Transparent Commission Sharing:</strong> Channeling advertising revenue back directly into user wallet balances.</li>
+                        <li><strong>Factual Market Surveys:</strong> Generating premium research value through verified digital checkpoints.</li>
+                        <li><strong>High-Speed Verification:</strong> Leveraging automatic cloud triggers to authorize task evidence logs.</li>
+                      </ul>
                     </div>
                   </div>
 
@@ -194,11 +200,15 @@ export const AboutUs = () => {
                     </div>
                     <div>
                       <h4 className="text-sm font-black text-slate-900 tracking-tight uppercase">
-                        AI-Empowered Gameplay
+                        Advanced Interactive Gameplay
                       </h4>
                       <p className="text-xs text-slate-500 font-medium leading-relaxed mt-1">
-                        Utilizing predictive APIs (like Google Gemini Integration), Nexvy creates highly educational, exciting personal trivia challenges. Users sharpen their brainwaves and redeem real wallet values!
+                        Using advanced APIs, Nexvy transforms routine question drills into competitive knowledge-testing events:
                       </p>
+                      <ul className="text-xs text-slate-500 mt-2 space-y-1.5 pl-4 list-disc font-medium">
+                        <li><strong>Dynamic Brain Teasers:</strong> Quizzes customized dynamically to refine IQ index scales.</li>
+                        <li><strong>Gamified Coin Engines:</strong> Interactive spin-wheels driving coin multiplier payouts up to 5X times.</li>
+                      </ul>
                     </div>
                   </div>
 
@@ -208,11 +218,16 @@ export const AboutUs = () => {
                     </div>
                     <div>
                       <h4 className="text-sm font-black text-slate-900 tracking-tight uppercase">
-                        100% Real Verification Ledger
+                        Verified Secure Payout Networks
                       </h4>
                       <p className="text-xs text-slate-500 font-medium leading-relaxed mt-1">
-                        Every single submission of evidence on Nexvy is logged securely. Unlike other spammy networks, our state-of-the-art admin panel ensures fast reviews and automated payouts.
+                        Nexvy takes transaction authenticity seriously, safeguarding the value of your efforts:
                       </p>
+                      <ul className="text-xs text-slate-500 mt-2 space-y-1.5 pl-4 list-disc font-medium">
+                        <li><strong>Instant Withdrawals:</strong> Cash out easily starting at a minimum limit of just 1,000 coins (equal to ₹10).</li>
+                        <li><strong>Flexible Options:</strong> Redeem direct transfers instantly via Unified Payments Interface (UPI) or premium digital voucher keys.</li>
+                        <li><strong>Guaranteed Anti-Fraud:</strong> Secure server verification loops that audit and release payouts daily.</li>
+                      </ul>
                     </div>
                   </div>
                 </div>
@@ -222,7 +237,7 @@ export const AboutUs = () => {
                     Corporate Entity: Nexvy Network
                   </span>
                   <span className="font-mono text-[9px] bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded text-indigo-600 font-bold uppercase">
-                    ACTIVE-OK
+                    ACTIVE-VERIFIED
                   </span>
                 </div>
               </div>

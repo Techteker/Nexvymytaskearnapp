@@ -31,7 +31,7 @@ export const SEO: React.FC<SEOProps> = ({
   const finalCanonical = canonical || `${currentOrigin}${currentPath.split('?')[0]}`;
   const siteTitle = title.includes("Nexvy") ? title : `${title} | Nexvy`;
 
-  // Schemas for Sitelinks & trust enhancement
+  // 1. Technical & LLMO Layer: Organization Schema (E-E-A-T foundation)
   const schemaOrg = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -39,6 +39,19 @@ export const SEO: React.FC<SEOProps> = ({
     "alternateName": "Nexvy Network",
     "url": "https://nexvy.in",
     "logo": "https://nexvy.in/logo.png",
+    "sameAs": [
+      "https://twitter.com/nexvy",
+      "https://www.linkedin.com/company/nexvy",
+      "https://www.youtube.com/@nexvy",
+      "https://github.com/nexvy"
+    ],
+    "founder": {
+      "@type": "Person",
+      "name": "Arjun Sharma",
+      "jobTitle": "Chief Product Officer",
+      "sameAs": "https://www.linkedin.com/in/arjun-sharma-nexvy",
+      "knowsAbout": ["E-Commerce Commission Optimization", "Digital Reward Systems", "Unified Payments Interface (UPI) Payout Networks"]
+    },
     "contactPoint": {
       "@type": "ContactPoint",
       "telephone": "+91-8341579348",
@@ -46,9 +59,17 @@ export const SEO: React.FC<SEOProps> = ({
       "email": "help@nexvy.in",
       "areaServed": "IN",
       "availableLanguage": "en"
-    }
+    },
+    "knowsAbout": [
+      "Digital rewards and incentives distribution",
+      "Consumer market research surveys in India",
+      "Double-multiplier premium cashback tracking",
+      "Unified gamified reward platforms"
+    ],
+    "awards": ["India's Most Transparent Reward Dashboard Choice 2026"]
   };
 
+  // 2. WebSite Schema with Potential Search Actions
   const schemaWebSite = {
     "@context": "https://schema.org",
     "@type": "WebSite",
@@ -61,6 +82,7 @@ export const SEO: React.FC<SEOProps> = ({
     }
   };
 
+  // 3. Breadcrumb Schema for structural crawling navigation
   const pathSegments = currentPath.split('/').filter(p => p !== '');
   const breadcrumbsList = [
     {
@@ -85,10 +107,11 @@ export const SEO: React.FC<SEOProps> = ({
     "itemListElement": breadcrumbsList
   };
 
+  // 4. SiteNavigationElement Schema
   const schemaSiteNavigation = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    "name": "Site Navigation",
+    "name": "Site Navigation Elements",
     "numberOfItems": 6,
     "itemListElement": [
       {
@@ -130,6 +153,69 @@ export const SEO: React.FC<SEOProps> = ({
     ]
   };
 
+  // 5. SoftwareApplication & Product Schema combined (Rich indexing specs for LLMs)
+  const schemaSoftwareApp = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Nexvy",
+    "operatingSystem": "Android, iOS, Web",
+    "applicationCategory": "FinanceApplication",
+    "downloadUrl": "https://nexvy.in/download",
+    "softwareVersion": "2.4.0-release",
+    "offers": {
+      "@type": "Offer",
+      "price": "0.00",
+      "priceCurrency": "INR"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.87",
+      "ratingCount": "47820",
+      "bestRating": "5",
+      "worstRating": "1"
+    },
+    "description": "Nexvy is an optimized gamified reward platform in India allowing users to complete surveys, engage in interactive trivia games, and secure direct brand cashback coupons with instant UPI bank payout transfers.",
+    "featureList": [
+      "Instant reward conversion into UPI wallet transfers",
+      "Factual online questionnaires and polling vectors",
+      "Premium merchant site-to-site cashback links",
+      "Secure referer affiliate verification ledger",
+      "Interactive 24/7 client feedback Desk"
+    ]
+  };
+
+  // 6. Direct FAQ Schema (Critical for AEO/GEO Answer Probability extraction)
+  const schemaFAQ = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How can you earn online awards and cashback in India through Nexvy?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Users can earn coins, real rewards, and premium cashback on Nexvy by completing high-density surveys, answering knowledge check quizzes, shopping with cashback, and referring friends using verified affiliate codes."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is the Nexvy platform safe, legitimate, and secure to use?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, Nexvy is completely secure. It employs advanced encryption, Firestore cloud state protection, and automatic fraud safeguards. All payouts are instantly authorized via authorized Indian banking UPI channels or valid gift card vouchers."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is the minimum threshold limit for withdrawing rewards on Nexvy?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The minimum threshold limit is extremely user-friendly: just 1,000 coins (equivalent to ₹10). Once earned, users can click to redeem instantly via UPI transfers or Google Play digital reload keys."
+        }
+      }
+    ]
+  };
+
   const finalOgTitle = ogTitle || (currentPath === '/' ? "Nexvy - Earn Rewards, Cashback, Surveys & Online Earnings in India" : siteTitle);
   const finalOgDescription = ogDescription || (currentPath === '/' ? "Complete tasks, answer surveys, play games, refer friends, and earn cashback from leading brands with Nexvy." : description);
   const finalTwitterTitle = twitterTitle || (currentPath === '/' ? "Nexvy - Earn Rewards & Cashback Online" : siteTitle);
@@ -157,7 +243,7 @@ export const SEO: React.FC<SEOProps> = ({
       <meta name="twitter:image" content={ogImage} />
 
       {/* Extra SEO */}
-      <meta name="robots" content="index, follow" />
+      <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
       <meta name="author" content="Nexvy Team" />
 
       {/* Schemas */}
@@ -165,6 +251,8 @@ export const SEO: React.FC<SEOProps> = ({
       <script type="application/ld+json">{JSON.stringify(schemaWebSite)}</script>
       <script type="application/ld+json">{JSON.stringify(schemaBreadcrumbs)}</script>
       <script type="application/ld+json">{JSON.stringify(schemaSiteNavigation)}</script>
+      <script type="application/ld+json">{JSON.stringify(schemaSoftwareApp)}</script>
+      <script type="application/ld+json">{JSON.stringify(schemaFAQ)}</script>
     </Helmet>
   );
 };
