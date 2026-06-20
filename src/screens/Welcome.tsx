@@ -177,28 +177,11 @@ export const Welcome = () => {
         {/* Outer Grid lines for tech-luxury feel */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(184,134,11,.03)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
 
-        {/* 9:16 Responsive Mobile Container with premium chassis frame effect */}
-        <div className="w-full max-w-[420px] min-h-[820px] md:h-[860px] bg-[#0A1F6B] rounded-[48px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8),0_0_0_10px_#111111,0_0_0_12px_#D4AF37] relative flex flex-col overflow-hidden border border-white/5">
-          
-          {/* Internal Status Bar (Mobile Look) */}
-          <div className="w-full h-11 px-6 pt-3 flex justify-between items-center text-white/95 text-xs font-semibold z-30 select-none bg-black/10">
-            <span>12:00 PM</span>
-            {/* Dynamic Island Notch */}
-            <div className="w-24 h-5 bg-black rounded-full absolute left-1/2 -translate-x-1/2 top-2 shadow-inner border border-white/5 flex items-center justify-end pr-2">
-              <div className="w-1.5 h-1.5 bg-[#0a1f6b] rounded-full animate-pulse" />
-            </div>
-            <div className="flex items-center gap-1.5 grayscale opacity-75">
-              <svg className="w-4 h-4 fill-current text-white" viewBox="0 0 24 24">
-                <path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.17 19.58 10.53 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 15c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/>
-              </svg>
-              <div className="w-4 h-2 bg-white rounded-xs relative">
-                <span className="absolute -right-[2px] top-[2px] w-[2px] h-1 bg-white rounded-r-xs" />
-              </div>
-            </div>
-          </div>
+        {/* Centered responsive container (clean of custom mobile mockup/iframe bezel borders) */}
+        <div className="w-full max-w-md bg-[#0A1F6B] rounded-3xl shadow-[0_22px_50px_rgba(0,0,0,0.6)] border border-white/10 relative flex flex-col overflow-hidden">
 
-          {/* Scollable Content Section */}
-          <div className="flex-1 overflow-y-auto no-scrollbar pb-8 relative flex flex-col">
+          {/* Scrollable Content Section */}
+          <div className="flex-1 overflow-y-auto no-scrollbar py-6 pb-10 relative flex flex-col">
             
             {/* Top Logo & Branding Section */}
             <div className="flex flex-col items-center mt-6 px-6 z-20">
