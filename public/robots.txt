@@ -24,4 +24,4 @@ Allow: /
 Disallow: /admin
 Disallow: /api
 
-Sitemap: https://www.nexvy.in/sitemap.xml
+Sitemap: https://app.nexvy.in/sitemap.xml

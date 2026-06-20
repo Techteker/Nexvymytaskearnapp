@@ -26,7 +26,7 @@ export const SEO: React.FC<SEOProps> = ({
   twitterTitle,
   twitterDescription
 }) => {
-  const currentOrigin = 'https://nexvy.in';
+  const currentOrigin = 'https://app.nexvy.in';
   const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/';
   const finalCanonical = canonical || `${currentOrigin}${currentPath.split('?')[0]}`;
   const siteTitle = title.includes("Nexvy") ? title : `${title} | Nexvy`;
@@ -37,8 +37,8 @@ export const SEO: React.FC<SEOProps> = ({
     "@type": "Organization",
     "name": "Nexvy",
     "alternateName": "Nexvy Network",
-    "url": "https://nexvy.in",
-    "logo": "https://nexvy.in/logo.png",
+    "url": "https://app.nexvy.in",
+    "logo": "https://app.nexvy.in/logo.png",
     "sameAs": [
       "https://twitter.com/nexvy",
       "https://www.linkedin.com/company/nexvy",
@@ -74,10 +74,10 @@ export const SEO: React.FC<SEOProps> = ({
     "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "Nexvy",
-    "url": "https://nexvy.in",
+    "url": "https://app.nexvy.in",
     "potentialAction": {
       "@type": "SearchAction",
-      "target": "https://nexvy.in/shop-earn?q={search_term_string}",
+      "target": "https://app.nexvy.in/shop-earn?q={search_term_string}",
       "query-input": "required name=search_term_string"
     }
   };
@@ -89,7 +89,7 @@ export const SEO: React.FC<SEOProps> = ({
       "@type": "ListItem",
       "position": 1,
       "name": "Home",
-      "item": "https://nexvy.in/"
+      "item": "https://app.nexvy.in/"
     }
   ];
   if (pathSegments.length > 0) {
@@ -97,7 +97,7 @@ export const SEO: React.FC<SEOProps> = ({
       "@type": "ListItem",
       "position": 2,
       "name": pathSegments[0].charAt(0).toUpperCase() + pathSegments[0].slice(1).replace('-', ' '),
-      "item": `https://nexvy.in/${pathSegments[0]}`
+      "item": `https://app.nexvy.in/${pathSegments[0]}`
     });
   }
 
@@ -118,37 +118,37 @@ export const SEO: React.FC<SEOProps> = ({
         "@type": "SiteNavigationElement",
         "position": 1,
         "name": "About Us",
-        "url": "https://nexvy.in/about-us"
+        "url": "https://app.nexvy.in/about-us"
       },
       {
         "@type": "SiteNavigationElement",
         "position": 2,
         "name": "Terms of Service",
-        "url": "https://nexvy.in/terms-and-conditions"
+        "url": "https://app.nexvy.in/terms-and-conditions"
       },
       {
         "@type": "SiteNavigationElement",
         "position": 3,
         "name": "Privacy Policy",
-        "url": "https://nexvy.in/privacy-policy"
+        "url": "https://app.nexvy.in/privacy-policy"
       },
       {
         "@type": "SiteNavigationElement",
         "position": 4,
         "name": "Refund Policy",
-        "url": "https://nexvy.in/refund-policy"
+        "url": "https://app.nexvy.in/refund-policy"
       },
       {
         "@type": "SiteNavigationElement",
         "position": 5,
         "name": "Contact Support",
-        "url": "https://nexvy.in/contact-us"
+        "url": "https://app.nexvy.in/contact-us"
       },
       {
         "@type": "SiteNavigationElement",
         "position": 6,
         "name": "Download App",
-        "url": "https://nexvy.in/download"
+        "url": "https://app.nexvy.in/download"
       }
     ]
   };
@@ -160,7 +160,7 @@ export const SEO: React.FC<SEOProps> = ({
     "name": "Nexvy",
     "operatingSystem": "Android, iOS, Web",
     "applicationCategory": "FinanceApplication",
-    "downloadUrl": "https://nexvy.in/download",
+    "downloadUrl": "https://app.nexvy.in/download",
     "softwareVersion": "2.4.0-release",
     "offers": {
       "@type": "Offer",
