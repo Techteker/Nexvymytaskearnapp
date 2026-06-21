@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { apiService } from '../services/api';
 import { SEO } from '../components/SEO';
+import { triggerHaptic } from '../lib/haptics';
 
 const DAYS = [
   { day: 1, reward: 100, status: 'claimed' },
@@ -66,7 +67,11 @@ export const DailyGift = () => {
   }, [status.nextClaimAt, status.isClaimable]);
 
   const claim = async () => {
-    if (!status.isClaimable) return showToast(`Next claim in ${timeLeft}`, 'error');
+    if (!status.isClaimable) {
+      triggerHaptic('warning');
+      return showToast(`Next claim in ${timeLeft}`, 'error');
+    }
+    triggerHaptic('heavy');
     setLoading(true);
     try {
       const data = await apiService.claimDailyGift();
@@ -78,10 +83,12 @@ export const DailyGift = () => {
         origin: { y: 0.6 },
         colors: ['#fbbf24', '#ffffff']
       });
+      triggerHaptic('success');
       showToast(`Claimed ${data.reward} coins!`, 'success');
       await refreshUser();
       await fetchStatus();
     } catch (err: any) {
+      triggerHaptic('error');
       showToast(err.message, 'error');
     } finally {
       setLoading(false);

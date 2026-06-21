@@ -11,6 +11,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { aiService, QuizQuestion } from '../services/aiService';
 import { SEO } from '../components/SEO';
+import { triggerHaptic } from '../lib/haptics';
 
 export const QuizGame = () => {
   const navigate = useNavigate();
@@ -103,7 +104,12 @@ export const QuizGame = () => {
       question.correctAnswer !== undefined ? question.correctAnswer :
       (question.answer !== undefined ? question.answer : question.correct);
     const isCorrect = index === correctIdx;
-    if (isCorrect) setScore(s => s + 1);
+    if (isCorrect) {
+      setScore(s => s + 1);
+      triggerHaptic('success');
+    } else {
+      triggerHaptic('error');
+    }
     
     setAnswers([...answers, { question: question.question, selected: index, correct: correctIdx }]);
 
@@ -115,6 +121,7 @@ export const QuizGame = () => {
       } else {
         setShowResult(true);
         if (score + (isCorrect ? 1 : 0) === totalQuestions) {
+          triggerHaptic('heavy');
           confetti({
             particleCount: 150,
             spread: 70,
@@ -128,13 +135,16 @@ export const QuizGame = () => {
 
   const collectReward = async () => {
     try {
+      triggerHaptic('medium');
       const finalScore = Math.round((score / totalQuestions) * 100);
       const res = await apiService.submitQuiz(id || 'unknown', finalScore, answers);
       if (res.error) throw new Error(res.error);
       
+      triggerHaptic('success');
       showToast(res.reward > 0 ? `Congratulations! You earned ${res.reward} coins!` : res.message || 'Quiz completed!', 'success');
       navigate('/survey');
     } catch (err: any) {
+      triggerHaptic('error');
       showToast(err.message || 'Error claiming reward', 'error');
       navigate('/survey');
     }

@@ -10,6 +10,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { AnimatePresence } from 'motion/react';
 import { SEO } from '../components/SEO';
+import { triggerHaptic } from '../lib/haptics';
 
 const SECTIONS = [
   { value: '5x', color: '#3b82f6', prob: 0.01 },
@@ -102,6 +103,7 @@ export const Spinner = () => {
   const spin = async () => {
     if (spinning) return;
     
+    triggerHaptic('heavy');
     setSpinning(true);
     setResult(null);
     setSpinOutcome(null);
@@ -111,6 +113,7 @@ export const Spinner = () => {
     try {
       const data = await apiService.spin(packs[selectedPack].coins);
       if (data.error) {
+        triggerHaptic('error');
         showToast(data.error, 'error');
         setSpinning(false);
         return;
@@ -130,11 +133,18 @@ export const Spinner = () => {
         transition: { duration: 4.5, ease: [0.25, 0.1, 0.25, 1] } // Custom easing for premium spin experience
       });
 
+      if (multiplier > 0) {
+        triggerHaptic('success');
+      } else {
+        triggerHaptic('warning');
+      }
+
       setSpinning(false);
       setSpinOutcome({ multiplier, win });
       setShowResultModal(true);
     } catch (error) {
       console.error(error);
+      triggerHaptic('error');
       setSpinning(false);
       showToast('Connection issue during spin. Please try again!', 'error');
     }
@@ -151,7 +161,10 @@ export const Spinner = () => {
           colors: ['#fbbf24', '#3b82f6', '#ffffff']
         });
         playWinSound();
+        triggerHaptic('success');
         showToast(`Successfully claimed +${spinOutcome.win} Coins!`, 'success');
+      } else {
+        triggerHaptic('light');
       }
       setShowResultModal(false);
       setSpinOutcome(null);
@@ -277,10 +290,15 @@ export const Spinner = () => {
           </div>
           
           <div className="grid grid-cols-4 gap-3">
-             {packs.map((pack, i) => (
+              {packs.map((pack, i) => (
                 <button 
                   key={i} 
-                  onClick={() => !spinning && setSelectedPack(i)}
+                  onClick={() => {
+                    if (!spinning) {
+                      triggerHaptic('light');
+                      setSelectedPack(i);
+                    }
+                  }}
                   disabled={spinning}
                   className={cn(
                     "p-3 flex flex-col items-center gap-2 transition-all border relative overflow-hidden rounded-[24px] cursor-pointer",

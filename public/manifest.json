@@ -1,21 +1,29 @@
 {
-  "name": "Nexvy",
+  "name": "Nexvy — Play, Shop & Earn Coins",
   "short_name": "Nexvy",
+  "description": "Unlock real earning rewards! Spin the lucky wheel, play premium brain quizzes, refer active friends, and get cashbacks.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#020617",
-  "theme_color": "#3b82f6",
-  "description": "Premium Social Earning Platform",
+  "orientation": "portrait-primary",
+  "background_color": "#040d2d",
+  "theme_color": "#0A1F6B",
+  "categories": [
+    "finance",
+    "entertainment",
+    "games"
+  ],
   "icons": [
     {
-      "src": "https://api.dicebear.com/7.x/identicon/svg?seed=Nexvy",
+      "src": "/input_file_0.png",
       "sizes": "192x192",
-      "type": "image/svg+xml"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "https://api.dicebear.com/7.x/identicon/svg?seed=Nexvy",
+      "src": "/input_file_0.png",
       "sizes": "512x512",
-      "type": "image/svg+xml"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

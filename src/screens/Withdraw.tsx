@@ -9,6 +9,7 @@ import { useToast } from '../context/ToastContext';
 import { EARNING_CONFIG } from '../constants';
 import { cn } from '../lib/utils';
 import { SEO } from '../components/SEO';
+import { triggerHaptic } from '../lib/haptics';
 
 const methods = [
   { id: 'paytm', name: 'Paytm', icon: Smartphone, color: 'bg-blue-500' },
@@ -46,24 +47,29 @@ export const Withdraw = () => {
     e.preventDefault();
     const withdrawAmount = parseInt(amount);
     if (user && user.coins < withdrawAmount) {
+      triggerHaptic('error');
       showToast("Insufficient balance", 'error');
       return;
     }
     if (withdrawAmount < minWithdrawalValue) {
+      triggerHaptic('warning');
       showToast(`Min withdrawal: ${minWithdrawalValue.toLocaleString()} coins`, 'error');
       return;
     }
 
+    triggerHaptic('medium');
     setLoading(true);
     try {
       const data = await apiService.withdraw(withdrawAmount, selected, details);
       if (data.error) throw new Error(data.error);
+      triggerHaptic('success');
       showToast("Withdrawal submitted successfully!", 'success');
       setAmount('');
       setDetails('');
       await refreshUser();
       loadData();
     } catch (err: any) {
+      triggerHaptic('error');
       showToast(err.message, 'error');
     } finally {
       setLoading(false);
@@ -110,7 +116,10 @@ export const Withdraw = () => {
           <button
             key={method.id}
             type="button"
-            onClick={() => setSelected(method.id)}
+            onClick={() => {
+              triggerHaptic('light');
+              setSelected(method.id);
+            }}
             className={`flex flex-col items-center gap-3 transition-all min-h-[105px] justify-center rounded-[24px] border cursor-pointer ${
               selected === method.id 
               ? 'bg-[#D4AF37]/15 border-[#D4AF37] border-2 shadow-[0_4px_15px_rgba(212,175,55,0.2)] scale-105' 
