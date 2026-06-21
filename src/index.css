@@ -19,6 +19,20 @@
 @layer base {
   body {
     @apply bg-[#040d2d] text-slate-100 font-sans overflow-x-hidden;
+    /* Prevent standard horizontal/vertical pull reload bounce behaviors typical of raw websites in webviews */
+    overscroll-behavior-y: contain;
+    /* Disable default web text selection to emulate a native App sandbox */
+    user-select: none;
+    -webkit-user-select: none;
+    /* Eliminate grey/blue tap background flash on android webviews */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+
+  /* Allow selectability exclusively in input/texarea elements for normal form usage */
+  input, textarea {
+    user-select: text !important;
+    -webkit-user-select: text !important;
   }
 }
 

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { LayoutGrid, RotateCcw, User, Wallet, Trophy } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { triggerHaptic } from '../lib/haptics';
 
 const navItems = [
   { path: '/', icon: LayoutGrid, label: 'GAMES' },
@@ -12,19 +13,33 @@ const navItems = [
   { path: '/profile', icon: User, label: 'PROFILE' },
 ];
 
-export const Navigation = () => {
+interface NavigationProps {
+  wide?: boolean;
+}
+
+export const Navigation = ({ wide = false }: NavigationProps) => {
   const location = useLocation();
   const navigate = useNavigate();
 
   return (
     <div className="fixed bottom-0 left-0 right-0 p-2 pb-6 bg-gradient-to-t from-[#040d2d] to-transparent pointer-events-none">
-      <nav className="max-w-md mx-auto bg-gradient-to-br from-[#0a1f6b]/95 via-[#0c247d]/95 to-[#051347]/95 border-t border-[#D4AF37]/30 pointer-events-auto flex items-end justify-between px-2 py-2 relative rounded-3xl shadow-[0_-12px_40px_rgba(212,175,55,0.15)] backdrop-blur-md">
+      <nav className={cn(
+        "mx-auto bg-gradient-to-br from-[#0a1f6b]/95 via-[#0c247d]/95 to-[#051347]/95 border-t border-[#D4AF37]/30 pointer-events-auto flex items-end justify-between px-2 py-2 relative rounded-3xl shadow-[0_-12px_40px_rgba(212,175,55,0.15)] backdrop-blur-md transition-all duration-300",
+        wide ? "max-w-3xl md:max-w-4xl" : "max-w-md md:max-w-2xl lg:max-w-3xl"
+      )}>
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
             <button
               key={item.path}
-              onClick={() => navigate(item.path)}
+              onClick={() => {
+                if (!isActive) {
+                  triggerHaptic('light');
+                  navigate(item.path);
+                } else {
+                  triggerHaptic('light');
+                }
+              }}
               className="flex flex-col items-center gap-1 flex-1 transition-all cursor-pointer group"
             >
               <div className={cn(

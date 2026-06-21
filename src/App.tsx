@@ -72,11 +72,63 @@ const LoadingFallback = () => (
 
 import { SplashScreen } from './components/SplashScreen';
 import { useAuth } from './context/AuthContext';
+import { triggerHaptic } from './lib/haptics';
 
 const AppContent = () => {
   const { authReady } = useAuth();
 
   useEffect(() => {
+    // Universal Tap-Feedback System for APK/Android feeling (intercepts all interactives)
+    const handleDocumentClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      
+      let el: HTMLElement | null = target;
+      let isInteractive = false;
+      while (el && el !== document.body) {
+        const tagName = el.tagName.toLowerCase();
+        if (
+          tagName === 'button' ||
+          tagName === 'a' ||
+          tagName === 'input' ||
+          tagName === 'select' ||
+          tagName === 'option' ||
+          el.getAttribute('role') === 'button' ||
+          el.classList.contains('cursor-pointer') ||
+          el.classList.contains('gaming-button-yellow') ||
+          el.classList.contains('gaming-button-blue')
+        ) {
+          isInteractive = true;
+          break;
+        }
+        el = el.parentElement;
+      }
+      
+      if (isInteractive) {
+        triggerHaptic('light');
+      }
+    };
+
+    document.addEventListener('click', handleDocumentClick);
+
+    // Dynamic Back Button Handler to intercept standard Android popstate back actions smoothly
+    let backPressTime = 0;
+    const handlePopstate = (e: PopStateEvent) => {
+      if (window.location.pathname === '/') {
+        const now = Date.now();
+        triggerHaptic('warning');
+        // Prevent accidental multiple back close states
+        if (now - backPressTime < 2000) {
+          triggerHaptic('heavy');
+        } else {
+          backPressTime = now;
+        }
+      } else {
+        triggerHaptic('light');
+      }
+    };
+    window.addEventListener('popstate', handlePopstate);
+
     // Capture URL referral code dynamically on land and store it in local storage
     const params = new URLSearchParams(window.location.search);
     const refCode = params.get('ref');
@@ -121,6 +173,11 @@ const AppContent = () => {
           .catch(e => console.warn('[LOGO-SYNC] Server-side fallback bypassed:', e));
       }
     });
+
+    return () => {
+      document.removeEventListener('click', handleDocumentClick);
+      window.removeEventListener('popstate', handlePopstate);
+    };
   }, []);
 
   if (!authReady) {
