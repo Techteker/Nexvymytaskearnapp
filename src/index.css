@@ -34,18 +34,39 @@
     user-select: text !important;
     -webkit-user-select: text !important;
   }
+
+  /* Prevent image dragging or context menus typical of websites */
+  img {
+    -webkit-user-drag: none;
+    user-drag: none;
+    -webkit-touch-callout: none;
+    pointer-events: auto;
+  }
+
+  /* Styled scrollbar to match high-end Android system themes */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(212, 175, 55, 0.2);
+    border-radius: 999px;
+  }
 }
 
 @layer utilities {
   .gaming-card {
-    @apply bg-[#0a1f6b]/50 border border-[#D4AF37]/25 shadow-[0_8px_32px_rgba(0,0,0,0.3)] rounded-[24px] overflow-hidden backdrop-blur-md;
+    @apply bg-[#0a1f6b]/50 border border-[#D4AF37]/25 shadow-[0_8px_32px_rgba(0,0,0,0.3)] rounded-[24px] overflow-hidden backdrop-blur-md transition-all active:scale-[0.99] duration-100;
   }
 
   .gaming-button-yellow {
-    @apply bg-gradient-to-b from-[#F8D37A] via-[#D4AF37] to-[#B8860B] text-slate-950 font-black rounded-2xl border-b-4 border-[#8B6508] shadow-[0_4px_15px_rgba(212,175,55,0.3)] hover:brightness-110 active:translate-y-1 active:border-b-0 transition-all;
+    @apply bg-gradient-to-b from-[#F8D37A] via-[#D4AF37] to-[#B8860B] text-slate-950 font-black rounded-2xl border-b-4 border-[#8B6508] shadow-[0_4px_15px_rgba(212,175,55,0.3)] hover:brightness-110 active:translate-y-1 active:border-b-0 active:scale-[0.96] transition-all duration-100 cursor-pointer;
   }
 
   .gaming-button-blue {
-    @apply bg-gradient-to-b from-violet-400 to-violet-600 text-white font-black rounded-2xl border-b-4 border-violet-800 active:translate-y-1 active:border-b-0 transition-all;
+    @apply bg-gradient-to-b from-violet-400 to-violet-600 text-white font-black rounded-2xl border-b-4 border-violet-800 active:translate-y-1 active:border-b-0 active:scale-[0.96] transition-all duration-100 cursor-pointer;
   }
 }

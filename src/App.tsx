@@ -111,6 +111,24 @@ const AppContent = () => {
 
     document.addEventListener('click', handleDocumentClick);
 
+    // Disable Long-Press/Right-Click context menus to emulate 100% native sandbox
+    const handleContextMenu = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName.toLowerCase() === 'input' || target.tagName.toLowerCase() === 'textarea')) {
+        return;
+      }
+      e.preventDefault();
+    };
+    document.addEventListener('contextmenu', handleContextMenu);
+
+    // Lock pinch-to-zoom & double touch gesture scaling robustly
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length > 1) {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener('touchstart', handleTouchStart, { passive: false });
+
     // Dynamic Back Button Handler to intercept standard Android popstate back actions smoothly
     let backPressTime = 0;
     const handlePopstate = (e: PopStateEvent) => {
@@ -176,6 +194,8 @@ const AppContent = () => {
 
     return () => {
       document.removeEventListener('click', handleDocumentClick);
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('popstate', handlePopstate);
     };
   }, []);
