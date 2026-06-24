@@ -5,10 +5,13 @@ import { Bell, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { EARNING_CONFIG } from '../constants';
 import { apiService } from '../services/api';
-import { client, APPWRITE_CONFIG } from '../lib/appwrite';
+import { APPWRITE_CONFIG } from '../lib/appwrite';
+import { useRealtime } from '../context/RealtimeContext';
 
 export const TopBar = () => {
   const { user } = useAuth();
+  const realtime = useRealtime();
+  const lastUpdate = realtime ? realtime.lastUpdate : 0;
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifs, setShowNotifs] = useState(false);
 
@@ -26,23 +29,6 @@ export const TopBar = () => {
 
     fetchNotifs();
 
-    // Appwrite Realtime Notification Subscription
-    const dbId = APPWRITE_CONFIG.databaseId;
-    const notificationsColl = APPWRITE_CONFIG.collections.notifications;
-    const channel = `databases.${dbId}.collections.${notificationsColl}.documents`;
-
-    let unsubscribe: (() => void) | null = null;
-    try {
-      unsubscribe = client.subscribe(channel, (response) => {
-        if (import.meta.env.DEV) {
-          console.log('[REALTIME] Live notifications broadcast received:', response);
-        }
-        fetchNotifs();
-      });
-    } catch (err) {
-      console.warn('[REALTIME] Notification sub error. Local fallback active:', err);
-    }
-
     // Local custom event listener for immediate same-user same-browser tab action matching
     const handleLocalRealtimeUpdate = () => {
       if (import.meta.env.DEV) {
@@ -52,15 +38,11 @@ export const TopBar = () => {
     };
     window.addEventListener('nexvy_realtime_update', handleLocalRealtimeUpdate);
 
-    const interval = setInterval(fetchNotifs, 30000); // Pool every 30s as robust absolute fallback
-
     return () => {
       active = false;
-      if (unsubscribe) unsubscribe();
       window.removeEventListener('nexvy_realtime_update', handleLocalRealtimeUpdate);
-      clearInterval(interval);
     };
-  }, []);
+  }, [lastUpdate]);
 
   return (
     <div className="flex items-center justify-between gap-4 mb-8 relative z-50">
