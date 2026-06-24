@@ -121,6 +121,28 @@ const AppContent = () => {
     };
     document.addEventListener('contextmenu', handleContextMenu);
 
+    // Prevent common browser inspect keyboard shortcuts (Hacker protection)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Disable F12
+      if (e.key === 'F12') {
+        e.preventDefault();
+        triggerHaptic('warning');
+        return;
+      }
+      // Disable Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C, Ctrl+U, Ctrl+S
+      if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) {
+        e.preventDefault();
+        triggerHaptic('warning');
+        return;
+      }
+      if (e.ctrlKey && (e.key === 'U' || e.key === 'u' || e.key === 'S' || e.key === 's')) {
+        e.preventDefault();
+        triggerHaptic('warning');
+        return;
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+
     // Lock pinch-to-zoom & double touch gesture scaling robustly
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length > 1) {
@@ -195,6 +217,7 @@ const AppContent = () => {
     return () => {
       document.removeEventListener('click', handleDocumentClick);
       document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('popstate', handlePopstate);
     };

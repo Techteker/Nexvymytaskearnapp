@@ -60,7 +60,14 @@ export const Withdraw = () => {
     triggerHaptic('medium');
     setLoading(true);
     try {
-      const data = await apiService.withdraw(withdrawAmount, selected, details);
+      // Strict sanitization of payment details text
+      const sanitizedDetails = details
+        .replace(/<[^>]*>/g, '') // Strip HTML tags
+        .replace(/javascript:/gi, '') // Block schema execution
+        .replace(/['"`;]/g, '') // Escape database and parsing boundaries
+        .trim();
+
+      const data = await apiService.withdraw(withdrawAmount, selected, sanitizedDetails);
       if (data.error) throw new Error(data.error);
       triggerHaptic('success');
       showToast("Withdrawal submitted successfully!", 'success');

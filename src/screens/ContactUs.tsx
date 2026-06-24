@@ -51,7 +51,22 @@ export const ContactUs = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.email || !form.message) {
+    
+    // Strict sanitization helper
+    const cleanStr = (val: string) => {
+      if (!val) return '';
+      return val
+        .replace(/<[^>]*>/g, '') // Strip HTML tags
+        .replace(/javascript:/gi, '') // Block schema execution
+        .replace(/['"`;]/g, '') // Strip escape sequences
+        .trim();
+    };
+
+    const sanitizedEmail = cleanStr(form.email);
+    const sanitizedMessage = cleanStr(form.message);
+    const sanitizedName = cleanStr(form.name);
+
+    if (!sanitizedEmail || !sanitizedMessage) {
       setError('Please provide both registered email and descriptions.');
       return;
     }
